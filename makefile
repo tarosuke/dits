@@ -15,7 +15,7 @@ COPTS += -Wall -Werror -g -O2 -fno-strict-aliasing -Wno-unused-result -Icore/inc
 CCOPTS += $(COPTS) -std=c++11
 
 
-libs = toolbox c m stdc++ pthread gdbm
+libs = toolbox c m stdc++ pthread gdbm git2
 LIBOPTS += -z noexecstack -Xlinker "--cref"
 LIBOPTS += $(addprefix -l, $(libs))
 
