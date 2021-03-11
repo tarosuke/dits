@@ -11,7 +11,7 @@ all: $(target)
 COPTS = -Itoolbox/include
 LIBOPTS = -Ltoolbox
 
-COPTS += -Wall -Werror -g -O2 -fno-strict-aliasing -Wno-unused-result -Icore/include -DPROJECT_NAME=\"$(target)\"
+COPTS += -Wall -Werror -g -O2 -fno-strict-aliasing -Wno-unused-result -DPROJECT_NAME=\"$(target)\"
 CCOPTS += $(COPTS) -std=c++11
 
 
@@ -19,7 +19,7 @@ libs = toolbox c m stdc++ pthread gdbm git2
 LIBOPTS += -z noexecstack -Xlinker "--cref"
 LIBOPTS += $(addprefix -l, $(libs))
 
-srcpath = core
+srcpath = code
 srcs = $(foreach p, $(srcpath), $(shell find $(p) -name "*.cc" -o -name "*.c" -o -name "*.glsl"))
 
 dirs = $(sort $(dir $(srcs)))
