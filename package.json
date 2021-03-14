@@ -7,7 +7,9 @@
 		"vscode": "^1.32.0"
 	},
 	"activationEvents": [
-		"*"
+		"onView:body",
+		"onView:parent",
+		"onView:children"
 	],
 	"main": "vscode/dits.js",
 	"contributes": {
@@ -16,7 +18,7 @@
 				{
 					"id": "issue",
 					"title": "Issue",
-					"icon": "resources/icon.svg"
+					"icon": "./resources/icon.svg"
 				}
 			]
 		},
