@@ -45,36 +45,21 @@ module.exports = {
 }
 
 
-const tree = {
-	'a': {
-		'aa': {
-			'aaa': {
-				'aaaa': {
-					'aaaaa': {
-						'aaaaaa': {
-
-						}
-					}
-				}
-			}
-		},
-		'ab': {}
-	},
-	'b': {
-		'ba': {},
-		'bb': {}
-	}
-};
 
 class LogTreeviewProvider {
 	constructor(v) {
 	}
 	getTreeItem(v) {
-		return 'c';
+		return {
+			label: v,
+			// collapsibleState: 'true', //ブランチノードのときは設定する
+		};
 	}
 	getChildren(v) {
 		return v ? [] : ['a', 'b'];
 	}
+
+	// onDidChangeTreeData
 }
 
 class Data extends vscode.TreeItem {
