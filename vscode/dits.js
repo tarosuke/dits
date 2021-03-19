@@ -2,7 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 const vscode = require('vscode');
 const child_process = require('child_process');
-const { chdir } = require('process');
+const { chdir, stdout } = require('process');
 const uuid = require('uuid');
 
 // this method is called when your extension is activated
@@ -70,10 +70,16 @@ class LogTreeviewProvider {
 		// });
 
 		var items = [];
-		chdir('dits');
-		var out = child_process.execSync('git log --oneline --no-decorate');
-		for( var item of out.toString().split('\n')){
-			items.push({ label: item.slice(8) });
+		var out = child_process.spawnSync(
+			'git',
+			['log', '--oneline', '--no-decorate'],
+			{ cwd:'dits' } );
+		if (!out.status) {
+			for (var item of out.output.toString().split('\n')) {
+				items.push({ label: item.slice(8) });
+			}
+		}else{
+			vscode.window.showErrorMessage(out.stderr.toString());
 		}
 		return items;
 	}
