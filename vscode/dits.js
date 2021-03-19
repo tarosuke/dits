@@ -2,7 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 const vscode = require('vscode');
 const child_process = require('child_process');
-const chdir = require('process');
+const { chdir } = require('process');
 const uuid = require('uuid');
 
 // this method is called when your extension is activated
@@ -52,11 +52,30 @@ class LogTreeviewProvider {
 	getTreeItem(v) {
 		return {
 			label: v,
-			// collapsibleState: 'true', //ブランチノードのときは設定する
+			collapsibleState: v.collapsibleState, //ブランチノードのときは設定する
 		};
 	}
 	getChildren(v) {
-		return v ? [] : ['a', 'b'];
+		//gitの起動と出力の回収
+		// const proc = child_process.exec(
+		// 	'git log --oneline --no-decorate',
+		// 	function (err, stdout, stderr) {
+		// });
+		// proc.stdout.on('data', function (data) {
+		// 	this.items.push(data.toString());
+		// 	console.stdout(data.toString());
+		// })
+		// proc.stderr.on('data', (data) => {
+		// 	console.error(data.toString());
+		// });
+
+		var items = [];
+		chdir('dits');
+		var out = child_process.execSync('git log --oneline --no-decorate');
+		for( var item of out.toString().split('\n')){
+			items.push({ label: item.slice(8) });
+		}
+		return items;
 	}
 
 	// onDidChangeTreeData
