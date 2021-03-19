@@ -56,19 +56,6 @@ class LogTreeviewProvider {
 		};
 	}
 	getChildren(v) {
-		//gitの起動と出力の回収
-		// const proc = child_process.exec(
-		// 	'git log --oneline --no-decorate',
-		// 	function (err, stdout, stderr) {
-		// });
-		// proc.stdout.on('data', function (data) {
-		// 	this.items.push(data.toString());
-		// 	console.stdout(data.toString());
-		// })
-		// proc.stderr.on('data', (data) => {
-		// 	console.error(data.toString());
-		// });
-
 		var items = [];
 		var out = child_process.spawnSync(
 			'git',
