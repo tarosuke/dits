@@ -4,6 +4,10 @@ const vscode = require('vscode');
 const child_process = require('child_process');
 const { chdir, stdout } = require('process');
 
+const { Repository } = require('./repository.js');
+
+
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 
@@ -35,6 +39,7 @@ module.exports = {
 
 class LogTreeviewProvider {
 	constructor(v) {
+		this.repos = new Repository;
 	}
 	getTreeItem(v) {
 		return {
@@ -43,27 +48,7 @@ class LogTreeviewProvider {
 		};
 	}
 	getChildren(v) {
-		var items = [];
-		var out = child_process.spawnSync(
-			'git',
-			['log', '--oneline', '--no-decorate'],
-			{ cwd:'dits' } );
-		if (!out.status) {
-			const outStr = out.output.toString().slice(1, -1);
-			console.log(outStr);
-			for (const item of outStr.split('\n')) {
-				if (item.trim().length) {
-					items.push({
-						hash: item.slice(1, 7).trim(),
-						label: item.slice(8).trim(),
-						collapsibleState: null
-					});
-				}
-			}
-		}else{
-			vscode.window.showErrorMessage(out.stderr.toString());
-		}
-		return items;
+		return this.repos.items;
 	}
 
 	// onDidChangeTreeData
