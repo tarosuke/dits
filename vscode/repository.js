@@ -80,6 +80,8 @@ exports.Repository = function (currentPath) {
 	this.NewChild = function () {
 		vscode.window.showInformationMessage('New Child!');
 
+		this.Do(['commit', '--allow-empty', '-m', '.dits new']);
+
 		//ブランチ再読込
 		LoadBranch();
 	}
