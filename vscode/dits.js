@@ -17,16 +17,21 @@ const { Repository } = require('./repository.js');
 function activate(context) {
 	console.log('Congratulations, your extension "helloworld-minimal-sample" is now active!');
 
-	//TreeViewの登録
+	// this.currentPath = vscode.workspace.workspaceFolders;
+	this.currentPath = 'dits';
+
+	//リポジトリの取得
+	this.repository = new Repository(currentPath);
+
+	//logにViewを設定
 	vscode.window.createTreeView('log', {
-		treeDataProvider: new LogTreeviewProvider(
-			vscode.workspace.workspaceFolders)
+		treeDataProvider: new LogTreeviewProvider(this.repository)
 	});
 
 	//コマンドの登録
 	context.subscriptions.push(
 		vscode.commands.registerCommand('dits.newChild', () => {
-			vscode.window.showInformationMessage('New Child!');
+			this.repository.NewChild();
 	}));
 }
 
@@ -42,8 +47,8 @@ module.exports = {
 
 
 class LogTreeviewProvider {
-	constructor(v) {
-		this.repos = new Repository;
+	constructor(r) {
+		this.branch = r.GetBranch();
 	}
 	getTreeItem(v) {
 		return {
@@ -52,7 +57,7 @@ class LogTreeviewProvider {
 		};
 	}
 	getChildren(v) {
-		return this.repos.items;
+		return this.branch.items;
 	}
 
 	// onDidChangeTreeData
