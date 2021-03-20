@@ -15,19 +15,7 @@ function activate(context) {
 
 	vscode.window.showInformationMessage('Hello World!');
 
-
-	//gitの起動と出力の回収
-//	const proc = child_process.spawn('git', ['commit', '-a', '-m', 'gitを動かせたので'], chdir('dits'));
-	// const proc = child_process.spawn('git', ['status']);
-	// console.log("child:" + proc.pid);
-	// proc.stdout.on('data', (data) => {
-	// 	console.log(data.toString());
-	// });
-	// proc.stderr.on('data', (data) => {
-	// 	console.error(data.toString());
-	// });
-
-
+	//TreeViewの登録
 	vscode.window.createTreeView('log', {
 		treeDataProvider: new LogTreeviewProvider(vscode.workspace.rootPath)
 	});
@@ -61,8 +49,16 @@ class LogTreeviewProvider {
 			['log', '--oneline', '--no-decorate'],
 			{ cwd:'dits' } );
 		if (!out.status) {
-			for (var item of out.output.toString().split('\n')) {
-				items.push({ label: item.slice(8) });
+			const outStr = out.output.toString().slice(1, -1);
+			console.log(outStr);
+			for (const item of outStr.split('\n')) {
+				if (item.trim().length) {
+					items.push({
+						hash: item.slice(1, 7).trim(),
+						label: item.slice(8).trim(),
+						collapsibleState: null
+					});
+				}
 			}
 		}else{
 			vscode.window.showErrorMessage(out.stderr.toString());
