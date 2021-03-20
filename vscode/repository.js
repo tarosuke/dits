@@ -16,7 +16,7 @@ class Branch{
 			if (item.length) {
 				//各コミット分
 				const commit = {
-					hash: item.slice(1, 7).trim(),
+					hash: item.slice(0, 7).trim(),
 					label: item.slice(8).trim(),
 					collapsibleState: null
 				};
@@ -25,11 +25,10 @@ class Branch{
 					this.items.push(commit);
 				} else {
 					//コマンド
-					vscode.window.log(commit.label);
 					const cargs = commit.label.split(' ');
 					switch (cargs[1]) {
 						case 'new': //新規子チケット
-							this.children.push(commit.id);
+							this.children.push(commit.hash);
 							break;
 						default:
 							break;
@@ -83,7 +82,7 @@ exports.Repository = function (currentPath) {
 		this.Do(['commit', '--allow-empty', '-m', '.dits new']);
 
 		//ブランチ再読込
-		LoadBranch();
+		this.LoadBranch();
 	}
 
 
