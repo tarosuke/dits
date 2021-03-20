@@ -8,7 +8,6 @@
 	},
 	"activationEvents": [
 		"onView:log",
-		"onView:parent",
 		"onView:children"
 	],
 	"main": "vscode/dits.js",
@@ -27,10 +26,6 @@
 				{
 					"id": "log",
 					"name": "Issue"
-				},
-				{
-					"id": "parent",
-					"name": "Parent"
 				},
 				{
 					"id": "children",

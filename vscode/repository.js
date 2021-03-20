@@ -7,6 +7,7 @@ const { chdir, stdout } = require('process');
 
 exports.Repository = function () {
 	this.items = [];
+	this.children = [];
 	var out = Git(['log', '--oneline', '--no-decorate'], 'dits');
 	if (out) {
 		const outStr = out.slice(1, -1);
@@ -26,6 +27,14 @@ exports.Repository = function () {
 				} else {
 					//コマンド
 					vscode.window.log(commit.label);
+					const cargs = commit.label.split(' ');
+					switch (cargs[1]) {
+						case 'new': //新規子チケット
+							this.children.push(commit.id);
+							break;
+						default:
+							break;
+					}
 				}
 			}
 		}
