@@ -8,7 +8,8 @@
 	},
 	"activationEvents": [
 		"onView:log",
-		"onView:children"
+		"onView:children",
+		"onCommand:newChild"
 	],
 	"main": "vscode/dits.js",
 	"contributes": {

@@ -17,13 +17,17 @@ const { Repository } = require('./repository.js');
 function activate(context) {
 	console.log('Congratulations, your extension "helloworld-minimal-sample" is now active!');
 
-	vscode.window.showInformationMessage('Hello World!');
-
 	//TreeViewの登録
 	vscode.window.createTreeView('log', {
-		treeDataProvider: new LogTreeviewProvider(vscode.workspace.rootPath)
+		treeDataProvider: new LogTreeviewProvider(
+			vscode.workspace.workspaceFolders)
 	});
 
+	//コマンドの登録
+	context.subscriptions.push(
+		vscode.commands.registerCommand('dits.newChild', () => {
+			vscode.window.showInformationMessage('New Child!');
+	}));
 }
 
 // this method is called when your extension is deactivated
