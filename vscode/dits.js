@@ -28,6 +28,11 @@ function activate(context) {
 		treeDataProvider: new LogTreeviewProvider(this.repository)
 	});
 
+	//childrenにViewを設定
+	vscode.window.createTreeView('children', {
+		treeDataProvider: new ChildrenTreeviewProvider(this.repository)
+	});
+
 	//コマンドの登録
 	context.subscriptions.push(
 		vscode.commands.registerCommand('dits.newChild', () => {
@@ -57,14 +62,24 @@ class LogTreeviewProvider {
 		};
 	}
 	getChildren(v) {
-		return this.branch.items;
+		return this.branch;
 	}
 
 	// onDidChangeTreeData
 }
 
-class Data extends vscode.TreeItem {
-	constructor(collapsibleState) {
-		super(label, collapsibleState);
+class ChildrenTreeviewProvider {
+	constructor(r) {
+		this.children = r.GetChildren();
 	}
+	getTreeItem(v) {
+		return {
+			label: v,
+		};
+	}
+	getChildren(v) {
+		return this.children;
+	}
+
+	// onDidChangeTreeData
 }

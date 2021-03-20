@@ -46,6 +46,7 @@ class Branch{
 exports.Repository = function (currentPath) {
 	this.currentPath = currentPath;
 
+	//Git呼び出し
 	this.Do = function (args) {
 		var out = child_process.spawnSync(
 			'git', args, { cwd: currentPath });
@@ -56,16 +57,37 @@ exports.Repository = function (currentPath) {
 		return out.output.toString();
 	}
 
+	//ブランチ情報取得
 	this.GetBranch = function () {
+		return this.branch.items;
+	}
+
+	//子チケット情報取得
+	this.GetChildren = function () {
+		return this.branch.children;
+	}
+
+	//branchの読み込み
+	this.LoadBranch = function () {
 		const result = this.Do(['log', '--oneline', '--no-decorate']);
 		if (!result) {
 			return; //failed
 		}
-		return new Branch(result);
+		this.branch = new Branch(result);
 	}
 
+	//子チケット追加
 	this.NewChild = function () {
 		vscode.window.showInformationMessage('New Child!');
+
+		//ブランチ再読込
+		LoadBranch();
 	}
+
+
+
+	this.LoadBranch();
+
+
 };
 
