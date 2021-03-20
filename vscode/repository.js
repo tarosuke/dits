@@ -7,12 +7,9 @@ const { chdir, stdout } = require('process');
 
 exports.Repository = function () {
 	this.items = [];
-	var out = child_process.spawnSync(
-		'git',
-		['log', '--oneline', '--no-decorate'],
-		{ cwd: 'dits' });
-	if (!out.status) {
-		const outStr = out.output.toString().slice(1, -1);
+	var out = Git(['log', '--oneline', '--no-decorate'], 'dits');
+	if (out) {
+		const outStr = out.slice(1, -1);
 		console.log(outStr);
 		for (const item of outStr.split('\n')) {
 			if (item.trim().length) {
@@ -31,5 +28,18 @@ exports.Repository = function () {
 	} else {
 		vscode.window.showErrorMessage(out.stderr.toString());
 	}
+};
+
+
+Git = function (args, c) {
+	var out = child_process.spawnSync(
+		'git',
+		['log', '--oneline', '--no-decorate'],
+		{ cwd: 'dits' });
+	if (out.status) {
+		vscode.window.showErrorMessage(out.stderr.toString());
+		return;
+	}
+	return out.output.toString();
 };
 
