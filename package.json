@@ -12,24 +12,36 @@
 	],
 	"main": "vscode/dits.js",
 	"contributes": {
+		"commands": [{
+			"command": "dits.newChild",
+			"title": "new"
+		}],
+		"menus": {
+			"view/title": [
+				{
+					"command": "dits.newChild",
+					"when": "view == children",
+					"group": "children"
+				}
+		]},
 		"viewsContainers": {
 			"activitybar": [
 				{
-					"id": "issue",
-					"title": "Issue",
+					"id": "dits",
+					"title": "dits",
 					"icon": "./resources/icon.svg"
 				}
 			]
 		},
 		"views": {
-			"issue": [
+			"dits": [
 				{
 					"id": "log",
-					"name": "Issue"
+					"name": "ISSUE"
 				},
 				{
 					"id": "children",
-					"name": "Children"
+					"name": "CHILDREN"
 				}
 			]
 		}
@@ -37,8 +49,5 @@
 	"scripts": {},
 	"devDependencies": {
 		"@types/vscode": "^1.32.0"
-	},
-	"dependencies": {
-		"wasm-git": "^0.0.4"
 	}
 }
