@@ -15,8 +15,6 @@ const { Repository } = require('./repository.js');
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
-	console.log('Congratulations, your extension "helloworld-minimal-sample" is now active!');
-
 	// this.currentPath = vscode.workspace.workspaceFolders;
 	this.currentPath = 'dits';
 
