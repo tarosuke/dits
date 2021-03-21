@@ -23,20 +23,29 @@ function activate(context) {
 	//リポジトリの取得
 	this.repository = new Repository(currentPath);
 
-	//logにViewを設定
-	vscode.window.createTreeView('log', {
-		treeDataProvider: new LogTreeviewProvider(this.repository)
-	});
+	this.SetView = function(){
+		//logにViewを設定
+		vscode.window.createTreeView('log', {
+			treeDataProvider: new LogTreeviewProvider(this.repository)
+		});
 
-	//childrenにViewを設定
-	vscode.window.createTreeView('children', {
-		treeDataProvider: new ChildrenTreeviewProvider(this.repository)
-	});
+		//childrenにViewを設定
+		vscode.window.createTreeView('children', {
+			treeDataProvider: new ChildrenTreeviewProvider(this.repository)
+		});
+	}
+
+	this.SetView();
 
 	//コマンドの登録
 	context.subscriptions.push(
 		vscode.commands.registerCommand('dits.newChild', () => {
 			this.repository.NewChild();
+	}));
+	context.subscriptions.push(
+		vscode.commands.registerCommand('dits.refresh', () => {
+			this.repository.LoadBranch();
+			this.SetView();
 	}));
 }
 
@@ -64,8 +73,6 @@ class LogTreeviewProvider {
 	getChildren(v) {
 		return this.branch;
 	}
-
-	// onDidChangeTreeData
 }
 
 class ChildrenTreeviewProvider {
@@ -80,6 +87,4 @@ class ChildrenTreeviewProvider {
 	getChildren(v) {
 		return this.children;
 	}
-
-	// onDidChangeTreeData
 }

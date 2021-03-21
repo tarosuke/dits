@@ -9,13 +9,18 @@
 	"activationEvents": [
 		"onView:log",
 		"onView:children",
-		"onCommand:newChild"
+		"onCommand:newChild",
+		"onCommand:refresh"
 	],
 	"main": "vscode/dits.js",
 	"contributes": {
 		"commands": [{
 			"command": "dits.newChild",
 			"title": "new"
+		},
+		{
+			"command": "dits.refresh",
+			"title": "Refresh"
 		}],
 		"menus": {
 			"view/title": [

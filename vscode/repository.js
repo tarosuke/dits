@@ -77,12 +77,10 @@ exports.Repository = function (currentPath) {
 
 	//子チケット追加
 	this.NewChild = function () {
-		vscode.window.showInformationMessage('New Child!');
-
 		this.Do(['commit', '--allow-empty', '-m', '.dits new']);
 
 		//ブランチ再読込
-		this.LoadBranch();
+		vscode.commands.executeCommand('dits.refresh');
 	}
 
 
