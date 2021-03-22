@@ -82,10 +82,20 @@ exports.Repository = function (currentPath) {
 
 	//子チケット追加
 	this.NewChild = function () {
-		this.CommitMessage('.dits new');
 
-		//ブランチ再読込
-		vscode.commands.executeCommand('dits.refresh');
+		let options = {
+			prompt: "Title: ",
+			placeHolder: "(title the new issue)"
+		}
+
+		vscode.window.showInputBox(options).then((value) => {
+			if (!value) return;
+
+			this.CommitMessage('.dits new '+value);
+
+			//ブランチ再読込
+			vscode.commands.executeCommand('dits.refresh');
+		});
 	}
 
 
