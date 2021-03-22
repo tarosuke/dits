@@ -56,6 +56,11 @@ exports.Repository = function (currentPath) {
 		return out.output.toString();
 	}
 
+	//メッセージだけ空コミット
+	this.CommitMessage = function (message) {
+		this.Do(['commit', '--allow-empty', '-m', message]);
+	}
+
 	//ブランチ情報取得
 	this.GetBranch = function () {
 		return this.branch.items;
@@ -77,14 +82,14 @@ exports.Repository = function (currentPath) {
 
 	//子チケット追加
 	this.NewChild = function () {
-		this.Do(['commit', '--allow-empty', '-m', '.dits new']);
+		this.CommitMessage('.dits new');
 
 		//ブランチ再読込
 		vscode.commands.executeCommand('dits.refresh');
 	}
 
 
-
+	//最初の状態を読み込む
 	this.LoadBranch();
 
 
