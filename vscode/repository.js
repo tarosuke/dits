@@ -29,7 +29,7 @@ class Branch{
 					const cargs = commit.label.split(' ');
 					switch (cargs[1]) {
 						case 'new': //新規子チケット
-							this.children.push(commit.label.slice(9));
+							this.children.push(commit.label.slice(10));
 							break;
 						default:
 							break;
@@ -103,6 +103,10 @@ exports.Repository = function (currentPath) {
 			//ブランチ再読込
 			vscode.commands.executeCommand('dits.refresh');
 		});
+	}
+
+	this.OpenChild = function (v) {
+		vscode.window.showInformationMessage('open child:' + v);
 	}
 
 

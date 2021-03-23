@@ -37,14 +37,18 @@ function activate(context) {
 
 	//コマンドの登録
 	context.subscriptions.push(
-		vscode.commands.registerCommand('dits.newChild', () => {
-			this.repository.NewChild();
-	}));
-	context.subscriptions.push(
 		vscode.commands.registerCommand('dits.refresh', () => {
 			this.repository.LoadBranch();
 			this.SetView();
 	}));
+	context.subscriptions.push(
+		vscode.commands.registerCommand('dits.newChild', () => {
+			this.repository.NewChild();
+		}));
+	context.subscriptions.push(
+		vscode.commands.registerCommand('dits.openChild', (v) => {
+			this.repository.OpenChild(v);
+		}));
 }
 
 // this method is called when your extension is deactivated
