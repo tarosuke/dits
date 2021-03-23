@@ -10,17 +10,20 @@
 		"onView:log",
 		"onView:children",
 		"onCommand:newChild",
-		"onCommand:refresh"
+		"onCommand:refresh",
+		"onCommand:openChild"
 	],
 	"main": "vscode/dits.js",
 	"contributes": {
 		"commands": [{
-			"command": "dits.newChild",
-			"title": "new"
-		},
-		{
 			"command": "dits.refresh",
 			"title": "Refresh"
+		},{
+			"command": "dits.newChild",
+			"title": "new"
+		},{
+			"command": "dits.openChild",
+			"title": "open child"
 		}],
 		"menus": {
 			"view/title": [
@@ -29,7 +32,14 @@
 					"when": "view == children",
 					"group": "children"
 				}
-		]},
+			],
+			"view/item/context": [
+				{
+					"command": "dits.openChild",
+					"when": "view == children"
+				}
+			]
+		},
 		"viewsContainers": {
 			"activitybar": [
 				{
