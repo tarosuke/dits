@@ -16,7 +16,7 @@ class Branch{
 			item = item.trim();
 			if (item.length) {
 				//各コミット分
-				const commit = {
+				var commit = {
 					hash: item.slice(0, 7).trim(),
 					label: item.slice(8).trim(),
 					collapsibleState: null
@@ -29,7 +29,8 @@ class Branch{
 					const cargs = commit.label.split(' ');
 					switch (cargs[1]) {
 						case 'new': //新規子チケット
-							this.children.push(commit.label.slice(10));
+							commit.label = commit.label.slice(10);
+							this.children.push(commit);
 							break;
 						default:
 							break;
