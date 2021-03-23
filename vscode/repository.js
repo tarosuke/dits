@@ -2,6 +2,7 @@
 
 const vscode = require('vscode');
 const child_process = require('child_process');
+const { title } = require('process');
 
 
 
@@ -28,7 +29,7 @@ class Branch{
 					const cargs = commit.label.split(' ');
 					switch (cargs[1]) {
 						case 'new': //新規子チケット
-							this.children.push(commit.hash);
+							this.children.push(commit.label.slice(9));
 							break;
 						default:
 							break;
@@ -89,7 +90,13 @@ exports.Repository = function (currentPath) {
 		}
 
 		vscode.window.showInputBox(options).then((value) => {
-			if (!value) return;
+			if (!value) {
+				return;
+			}
+			value.trim();
+			if (!value.length) {
+				return;
+			}
 
 			this.CommitMessage('.dits new '+value);
 
