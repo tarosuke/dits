@@ -77,7 +77,11 @@ exports.Repository = function (currentPath) {
 
 	//branchの読み込み
 	this.LoadBranch = function () {
-		const result = this.Do(['log', '--oneline', '--no-decorate']);
+		const result = this.Do([
+			'log',
+			'--oneline',
+			'--no-decorate',
+			'--first-parent']);
 		if (!result) {
 			return; //failed
 		}
