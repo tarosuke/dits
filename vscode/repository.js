@@ -105,8 +105,13 @@ exports.Repository = function (currentPath) {
 		});
 	}
 
-	this.OpenChild = function (v) {
-		vscode.window.showInformationMessage('open child:' + v);
+	this.OpenChild = function (ticket) {
+		vscode.window.showInformationMessage('open child:' + ticket.label);
+
+		if (this.Do(['checkout', '-b', ticket.hash])) {
+			this.CommitMessage('.dits open');
+			vscode.commands.executeCommand('dits.refresh');
+		}
 	}
 
 
