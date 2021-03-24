@@ -10,7 +10,6 @@ class Branch{
 		this.items = [];
 		this.children = [];
 		const outStr = out.slice(1, -1);
-		// console.log(outStr);
 		for (var item of outStr.split('\n')) {
 			item = item.trim();
 			if (item.length) {
@@ -26,6 +25,10 @@ class Branch{
 				} else {
 					//コマンド
 					const cargs = commit.label.split(' ');
+					if (cargs[1] == 'open') {
+						//ブランチの始まり
+						break;
+					}
 					switch (cargs[1]) {
 						case 'new': //新規子チケット
 							commit.label = commit.label.slice(10);
