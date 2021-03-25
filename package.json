@@ -60,7 +60,7 @@
 					"name": "CHILDREN"
 				},
 				{
-					"id": "closed",
+					"id": "closedChildren",
 					"name": "CLOSED CHILDREN"
 				}
 			]

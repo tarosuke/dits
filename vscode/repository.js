@@ -9,6 +9,7 @@ class Branch{
 	constructor(out) {
 		this.items = [];
 		this.children = [];
+		this.closedChildren = [];
 		const outStr = out.slice(1, -1);
 		for (var item of outStr.split('\n')) {
 			item = item.trim();
@@ -33,6 +34,9 @@ class Branch{
 						case 'new': //新規子チケット
 							commit.label = commit.label.slice(10);
 							this.children.push(commit);
+							break;
+						case 'Merge': //merge=close
+							this.closedChildren[cargs[2]] = cargs[2];
 							break;
 						default:
 							break;
@@ -73,6 +77,9 @@ exports.Repository = function (currentPath) {
 	//子チケット情報取得
 	this.GetChildren = function () {
 		return this.branch.children;
+	}
+	this.GetClosedChildren = function () {
+		return this.branch.closedChildren;
 	}
 
 	//branchの読み込み
