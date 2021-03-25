@@ -29,6 +29,11 @@ function activate(context) {
 		vscode.window.createTreeView('children', {
 			treeDataProvider: new ChildrenTreeviewProvider(this.repository)
 		});
+
+		//closedChildrenにViewを設定
+		vscode.window.createTreeView('closedChildren', {
+			treeDataProvider: new ClosedChildrenTreeviewProvider(this.repository)
+		});
 	}
 
 	this.SetView();
@@ -88,3 +93,17 @@ class ChildrenTreeviewProvider {
 		return this.children;
 	}
 }
+class ClosedChildrenTreeviewProvider {
+	constructor(r) {
+		this.closedChildren = r.GetClosedChildren();
+	}
+	getTreeItem(v) {
+		return {
+			label: v,
+		};
+	}
+	getChildren(v) {
+		return this.closedChildren;
+	}
+}
+
