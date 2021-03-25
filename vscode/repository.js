@@ -9,6 +9,7 @@ class Branch{
 	constructor(out) {
 		this.items = [];
 		this.children = [];
+		this.closed = [];
 		this.closedChildren = [];
 		const outStr = out.slice(1, -1);
 		for (var item of outStr.split('\n')) {
@@ -20,27 +21,33 @@ class Branch{
 					label: item.slice(8).trim(),
 					collapsibleState: null
 				};
-				if (commit.label.indexOf('.dits') < 0) {
-					//コメント
-					this.items.push(commit);
-				} else {
-					//コマンド
-					const cargs = commit.label.split(' ');
-					if (cargs[1] == 'open') {
-						//ブランチの始まり
+
+				//コミットラベルをパース
+				const cargs = commit.label.split(' ');
+				switch (cargs[0]) {
+					case '.dits':
+						//コマンド
+						switch (cargs[1]) {
+							case 'new': //新規子チケット
+								commit.label = commit.label.slice(10);
+								if (0 <= this.closedChildren.indexOf(commit.hash)) {
+									this.children.push(commit);
+								} else {
+									this.closedChildren.push(commit);
+								}
+								break;
+							case 'open': //ブランチの始まり=解析終了
+								return;
+							default:
+								break;
+						}
 						break;
-					}
-					switch (cargs[1]) {
-						case 'new': //新規子チケット
-							commit.label = commit.label.slice(10);
-							this.children.push(commit);
-							break;
-						case 'Merge': //merge=close
-							this.closedChildren[cargs[2]] = cargs[2];
-							break;
-						default:
-							break;
-					}
+					case 'Merge': //merge=closd
+						this.closed.push(cargs[2]);
+						break;
+					default: //コメント
+						this.items.push(commit);
+						break;
 				}
 			}
 		}
