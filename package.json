@@ -58,6 +58,10 @@
 				{
 					"id": "children",
 					"name": "CHILDREN"
+				},
+				{
+					"id": "closed",
+					"name": "CLOSED CHILDREN"
 				}
 			]
 		}
