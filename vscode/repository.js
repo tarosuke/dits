@@ -48,6 +48,11 @@ class Branch{
 								break;
 							case 'open': //ブランチの始まり=解析終了
 								return;
+							case 'parent': //親子ミットの設定
+								if (!this.parent) {
+									this.parent = cargs[2];
+								}
+								break;
 							default:
 								break;
 						}
