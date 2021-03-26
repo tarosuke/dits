@@ -145,6 +145,7 @@ exports.Repository = function (currentPath) {
 
 		if (this.Do(['checkout', '-b', ticket.hash])) {
 			this.CommitMessage('.dits open');
+			this.CommitMessage('.dits parent ' + this.branch.currentBranch);
 			vscode.commands.executeCommand('dits.refresh');
 		}
 	}
