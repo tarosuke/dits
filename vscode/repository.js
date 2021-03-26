@@ -98,6 +98,12 @@ exports.Repository = function (currentPath) {
 	this.GetBranch = function () {
 		return this.branch.items;
 	}
+	this.GetParent = function () {
+		return this.branch.parent;
+	}
+	this.GetCurrentBranch = function () {
+		return this.branch.currentBranch;
+	}
 
 	//子チケット情報取得
 	this.GetChildren = function () {
