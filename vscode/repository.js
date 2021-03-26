@@ -30,7 +30,7 @@ class Branch{
 						switch (cargs[1]) {
 							case 'new': //新規子チケット
 								commit.label = commit.label.slice(10);
-								if (0 <= this.closedChildren.indexOf(commit.hash)) {
+								if (this.closed.indexOf(commit.hash) < 0) {
 									this.children.push(commit);
 								} else {
 									this.closedChildren.push(commit);
@@ -43,7 +43,7 @@ class Branch{
 						}
 						break;
 					case 'Merge': //merge=closd
-						this.closed.push(cargs[2]);
+						this.closed.push(cargs[2].slice(1, -1));
 						break;
 					default: //コメント
 						this.items.push(commit);
