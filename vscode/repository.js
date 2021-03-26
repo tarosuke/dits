@@ -13,13 +13,7 @@ class Branch{
 		this.closedChildren = [];
 
 		//カレントブランチ名を取得
-		for (let item of branch.split('\n')) {
-			item = item.split(' ');
-			if (item[0] == '*') {
-				this.currentBranch = item[1];
-				break;
-			}
-		}
+		this.ParseBranch(branch);
 
 		//ログをパース
 		for (var item of log.split('\n')) {
@@ -64,6 +58,15 @@ class Branch{
 						this.items.push(commit);
 						break;
 				}
+			}
+		}
+	}
+	ParseBranch = function (b) {
+		for (let item of b.split('\n')) {
+			item = item.split(' ');
+			if (item[0] == '*') {
+				this.currentBranch = item[1];
+				break;
 			}
 		}
 	}
