@@ -6,13 +6,23 @@ const child_process = require('child_process');
 
 
 class Branch{
-	constructor(out) {
+	constructor(log, branch) {
 		this.items = [];
 		this.children = [];
 		this.closed = [];
 		this.closedChildren = [];
-		const outStr = out.slice(1, -1);
-		for (var item of outStr.split('\n')) {
+
+		//カレントブランチ名を取得
+		for (let item of branch.split('\n')) {
+			item = item.split(' ');
+			if (item[0] == '*') {
+				this.currentBranch = item[1];
+				break;
+			}
+		}
+
+		//ログをパース
+		for (var item of log.split('\n')) {
 			item = item.trim();
 			if (item.length) {
 				//各コミット分
@@ -68,7 +78,7 @@ exports.Repository = function (currentPath) {
 			vscode.window.showErrorMessage(out.stderr.toString());
 			return;
 		}
-		return out.output.toString();
+		return out.output.toString().slice(1, -1);
 	}
 
 	//メッセージだけ空コミット
@@ -91,15 +101,19 @@ exports.Repository = function (currentPath) {
 
 	//branchの読み込み
 	this.LoadBranch = function () {
-		const result = this.Do([
+		const log = this.Do([
 			'log',
 			'--oneline',
 			'--no-decorate',
 			'--first-parent']);
-		if (!result) {
+		if (!log) {
 			return; //failed
 		}
-		this.branch = new Branch(result);
+		const branch = this.Do(['branch']);
+		if (!branch) {
+			return;
+		}
+		this.branch = new Branch(log, branch);
 	}
 
 	//子チケット追加
