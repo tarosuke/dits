@@ -19,7 +19,10 @@ function activate(context) {
 	//リポジトリの取得
 	this.repository = new Repository(currentPath);
 
-	this.SetView = function(){
+	this.SetView = function () {
+		//issueにwebViewを設定
+		vscode.window.createWebviewPanel('issue', 'ISSUE');
+
 		//logにViewを設定
 		vscode.window.createTreeView('log', {
 			treeDataProvider: new LogTreeviewProvider(this.repository)
