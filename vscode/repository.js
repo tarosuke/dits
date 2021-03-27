@@ -157,7 +157,7 @@ exports.Repository = function (currentPath) {
 	this.OpenChild = function (ticket) {
 		vscode.window.showInformationMessage('open child:' + ticket.label);
 
-		if (this.Do(['checkout', '-b', ticket.hash])) {
+		if (this.Do(['checkout', '-b', '#' + ticket.hash])) {
 			this.CommitMessage('.dits open');
 			this.CommitMessage('.dits parent ' + this.branch.currentBranch);
 			vscode.commands.executeCommand('dits.refresh');
