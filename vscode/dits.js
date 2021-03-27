@@ -19,7 +19,12 @@ function activate(context) {
 	//リポジトリの取得
 	this.repository = new Repository(currentPath);
 
-	this.SetView = function(){
+	this.SetView = function () {
+		//issueにwebViewを設定
+		vscode.window.createTreeView('issue', {
+			treeDataProvider: new IssueProvider(this.repository)
+		});
+
 		//logにViewを設定
 		vscode.window.createTreeView('log', {
 			treeDataProvider: new LogTreeviewProvider(this.repository)
@@ -64,6 +69,21 @@ module.exports = {
 }
 
 
+
+class IssueProvider {
+	constructor(r) {
+		this.repos = r;
+	}
+	getTreeItem(v) {
+		return v;
+	}
+	getChildren(v) {
+		return [
+			{ label: 'title: ' + this.repos.GetCurrentBranch() },
+			{ label: 'parent: ' + this.repos.GetParent() }
+		];
+	}
+}
 
 class LogTreeviewProvider {
 	constructor(r) {

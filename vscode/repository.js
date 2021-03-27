@@ -2,17 +2,20 @@
 
 const vscode = require('vscode');
 const child_process = require('child_process');
+const { notStrictEqual } = require('assert');
 
 
 
 class Branch{
-	constructor(out) {
+	constructor(log, branch) {
 		this.items = [];
 		this.children = [];
 		this.closed = [];
 		this.closedChildren = [];
-		const outStr = out.slice(1, -1);
-		for (var item of outStr.split('\n')) {
+		this.branches = [];
+
+		//ログをパース
+		for (var item of log.split('\n')) {
 			item = item.trim();
 			if (item.length) {
 				//各コミット分
@@ -22,35 +25,71 @@ class Branch{
 					collapsibleState: null
 				};
 
-				//コミットラベルをパース
-				const cargs = commit.label.split(' ');
-				switch (cargs[0]) {
-					case '.dits':
-						//コマンド
-						switch (cargs[1]) {
-							case 'new': //新規子チケット
-								commit.label = commit.label.slice(10);
-								if (this.closed.indexOf(commit.hash) < 0) {
-									this.children.push(commit);
-								} else {
-									this.closedChildren.push(commit);
-								}
-								break;
-							case 'open': //ブランチの始まり=解析終了
-								return;
-							default:
-								break;
-						}
-						break;
-					case 'Merge': //merge=closd
-						this.closed.push(cargs[2].slice(1, -1));
-						break;
-					default: //コメント
-						this.items.push(commit);
-						break;
+				if (!this.ParseCommitLabel(commit)) {
+					break;
 				}
 			}
 		}
+		//ブランチ名一覧を取得
+		this.ParseBranch(branch);
+	}
+	ParseBranch = function (b) {
+		for (let item of b.split('\n')) {
+			item = item.trim().split(' ');
+			if (item[0] == '*') {
+				if (!this.currentTitle) {
+					//カレントタイトルを取得する(仮
+					this.currentTitle = item[1].trim();
+				}
+				this.branches.push(item[1].trim());
+			} else {
+				this.branches.push(item[0].trim());
+			}
+		}
+	}
+	ParseCommitLabel = function(commit) {
+		//コミットラベルをパース
+		const cargs = commit.label.split(' ');
+		switch (cargs[0]) {
+			case '.dits':
+				//コマンド
+				switch (cargs[1]) {
+					case 'new': //新規子チケット
+						commit.label = commit.label.slice(10);
+						if (this.closed.indexOf(commit.hash) < 0) {
+							this.children.push(commit);
+						} else {
+							this.closedChildren.push(commit);
+						}
+						break;
+					case 'open': //ブランチの始まり=解析終了
+						if (!this.currentTitle) {
+							this.currentTitle = commit.label.slice(11);
+						}
+						return false;
+					case 'parent': //親子ミットの設定
+						if (!this.parent) {
+							this.parent = cargs[2];
+						}
+						break;
+					case 'title': //チケットのタイトル
+						if (!this.currentTitle) {
+							this.currentTitle = commit.label.slice(12);
+						}
+						break;
+					default:
+						break;
+				}
+				break;
+			case 'Merge': //merge=closd
+				this.closed.push(cargs[2].slice(
+					cargs[2][1] == '#' ? 2 : 1, -1));
+				break;
+			default: //コメント
+				this.items.push(commit);
+				break;
+		}
+		return true;
 	}
 };
 
@@ -68,7 +107,7 @@ exports.Repository = function (currentPath) {
 			vscode.window.showErrorMessage(out.stderr.toString());
 			return;
 		}
-		return out.output.toString();
+		return out.output.toString().slice(1, -1);
 	}
 
 	//メッセージだけ空コミット
@@ -79,6 +118,12 @@ exports.Repository = function (currentPath) {
 	//ブランチ情報取得
 	this.GetBranch = function () {
 		return this.branch.items;
+	}
+	this.GetParent = function () {
+		return this.branch.parent;
+	}
+	this.GetCurrentBranch = function () {
+		return this.branch.currentTitle;
 	}
 
 	//子チケット情報取得
@@ -91,15 +136,19 @@ exports.Repository = function (currentPath) {
 
 	//branchの読み込み
 	this.LoadBranch = function () {
-		const result = this.Do([
+		const log = this.Do([
 			'log',
 			'--oneline',
 			'--no-decorate',
 			'--first-parent']);
-		if (!result) {
+		if (!log) {
 			return; //failed
 		}
-		this.branch = new Branch(result);
+		const branch = this.Do(['branch']);
+		if (!branch) {
+			return;
+		}
+		this.branch = new Branch(log, branch);
 	}
 
 	//子チケット追加
@@ -127,10 +176,13 @@ exports.Repository = function (currentPath) {
 	}
 
 	this.OpenChild = function (ticket) {
-		vscode.window.showInformationMessage('open child:' + ticket.label);
+		const command = this.branch.branches.indexOf('#' + ticket.hash) < 0 ?
+			['checkout', '-b', '#' + ticket.hash] :
+			['checkout', '#' + ticket.hash];
 
-		if (this.Do(['checkout', '-b', ticket.hash])) {
-			this.CommitMessage('.dits open');
+		if (this.Do(command)) {
+			this.CommitMessage('.dits open ' + ticket.label);
+			this.CommitMessage('.dits parent ' + this.branch.currentTitle);
 			vscode.commands.executeCommand('dits.refresh');
 		}
 	}
