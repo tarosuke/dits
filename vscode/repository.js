@@ -12,9 +12,6 @@ class Branch{
 		this.closed = [];
 		this.closedChildren = [];
 
-		//カレントブランチ名を取得
-		this.ParseBranch(branch);
-
 		//ログをパース
 		for (var item of log.split('\n')) {
 			item = item.trim();
@@ -41,10 +38,18 @@ class Branch{
 								}
 								break;
 							case 'open': //ブランチの始まり=解析終了
+								if (!this.currentBranch) {
+									this.currentBranch = commit.label.slice(11);
+								}
 								return;
 							case 'parent': //親子ミットの設定
 								if (!this.parent) {
 									this.parent = cargs[2];
+								}
+								break;
+							case 'title': //チケットのタイトル
+								if (!this.currentBranch) {
+									this.currentBranch = commit.label.slice(12);
 								}
 								break;
 							default:
@@ -59,6 +64,10 @@ class Branch{
 						break;
 				}
 			}
+		}
+		//まだ取得できていなければカレントブランチ名を取得
+		if (!this.currentBranch) {
+			this.ParseBranch(branch);
 		}
 	}
 	ParseBranch = function (b) {
@@ -155,10 +164,8 @@ exports.Repository = function (currentPath) {
 	}
 
 	this.OpenChild = function (ticket) {
-		vscode.window.showInformationMessage('open child:' + ticket.label);
-
 		if (this.Do(['checkout', '-b', '#' + ticket.hash])) {
-			this.CommitMessage('.dits open');
+			this.CommitMessage('.dits open ' + ticket.label);
 			this.CommitMessage('.dits parent ' + this.branch.currentBranch);
 			vscode.commands.executeCommand('dits.refresh');
 		}
