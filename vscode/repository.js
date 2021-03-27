@@ -57,7 +57,8 @@ class Branch{
 						}
 						break;
 					case 'Merge': //merge=closd
-						this.closed.push(cargs[2].slice(1, -1));
+						this.closed.push(cargs[2].slice(
+							cargs[2][1] == '#' ? 2 : 1, -1));
 						break;
 					default: //コメント
 						this.items.push(commit);
