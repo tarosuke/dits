@@ -2,6 +2,7 @@
 
 const vscode = require('vscode');
 const child_process = require('child_process');
+const { notStrictEqual } = require('assert');
 
 
 
@@ -11,6 +12,7 @@ class Branch{
 		this.children = [];
 		this.closed = [];
 		this.closedChildren = [];
+		this.branches = [];
 
 		//ログをパース
 		for (var item of log.split('\n')) {
@@ -38,8 +40,8 @@ class Branch{
 								}
 								break;
 							case 'open': //ブランチの始まり=解析終了
-								if (!this.currentBranch) {
-									this.currentBranch = commit.label.slice(11);
+								if (!this.currentTitle) {
+									this.currentTitle = commit.label.slice(11);
 								}
 								return;
 							case 'parent': //親子ミットの設定
@@ -48,8 +50,8 @@ class Branch{
 								}
 								break;
 							case 'title': //チケットのタイトル
-								if (!this.currentBranch) {
-									this.currentBranch = commit.label.slice(12);
+								if (!this.currentTitle) {
+									this.currentTitle = commit.label.slice(12);
 								}
 								break;
 							default:
@@ -66,17 +68,20 @@ class Branch{
 				}
 			}
 		}
-		//まだ取得できていなければカレントブランチ名を取得
-		if (!this.currentBranch) {
-			this.ParseBranch(branch);
-		}
+		//ブランチ名一覧を取得
+		this.ParseBranch(branch);
 	}
 	ParseBranch = function (b) {
 		for (let item of b.split('\n')) {
 			item = item.split(' ');
 			if (item[0] == '*') {
-				this.currentBranch = item[1];
-				break;
+				if (!this.currentTitle) {
+					//カレントタイトルを取得する(仮
+					this.currentTitle = item[1].trim();
+				}
+				this.branches.push(tiem[1].trim());
+			} else {
+				this.branches.push(tiem[0].trim());
 			}
 		}
 	}
@@ -112,7 +117,7 @@ exports.Repository = function (currentPath) {
 		return this.branch.parent;
 	}
 	this.GetCurrentBranch = function () {
-		return this.branch.currentBranch;
+		return this.branch.currentTitle;
 	}
 
 	//子チケット情報取得
@@ -165,9 +170,13 @@ exports.Repository = function (currentPath) {
 	}
 
 	this.OpenChild = function (ticket) {
-		if (this.Do(['checkout', '-b', '#' + ticket.hash])) {
+		const command = branch.branches.indexOf('#' + ticket.hash) < 0 ?
+			['checkout', '-b', '#' + ticket.hash] :
+			['checkout', '#' + ticket.hash];
+
+		if (this.Do(command)) {
 			this.CommitMessage('.dits open ' + ticket.label);
-			this.CommitMessage('.dits parent ' + this.branch.currentBranch);
+			this.CommitMessage('.dits parent ' + this.branch.currentTitle);
 			vscode.commands.executeCommand('dits.refresh');
 		}
 	}
