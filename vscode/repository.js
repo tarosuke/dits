@@ -11,6 +11,7 @@ class Branch{
 		this.items = [];
 		this.children = [];
 		this.closed = [];
+		this.deleted = [];
 		this.closedChildren = [];
 		this.branches = [];
 
@@ -58,10 +59,12 @@ class Branch{
 				switch (cargs[1]) {
 					case 'new': //新規子チケット
 						commit.label = commit.label.slice(10);
-						if (this.closed.indexOf(commit.hash) < 0) {
-							this.children.push(commit);
-						} else {
-							this.closedChildren.push(commit);
+						if (this.deleted.indexOf(`#${commit.hash}`) < 0) {
+							if (this.closed.indexOf(commit.hash) < 0) {
+								this.children.push(commit);
+							} else {
+								this.closedChildren.push(commit);
+							}
 						}
 						break;
 					case 'open': //ブランチの始まり=解析終了
@@ -69,6 +72,9 @@ class Branch{
 							this.currentTitle = commit.label.slice(11);
 						}
 						return false;
+					case 'delete': //削除済み子チケット
+						this.deleted.push(cargs[2]);
+						break;
 					case 'parent': //親子ミットの設定
 						if (!this.parent) {
 							this.parent = cargs[2];
@@ -186,7 +192,7 @@ exports.Repository = function (currentPath) {
 		if (this.Do(command)) {
 			if (!reopen) {
 				this.CommitMessage('.dits open ' + ticket.label);
-				this.CommitMessage('.dits parent ' + this.branch.currentTitle);
+				this.CommitMessage('.dits parent ' + this.branch.branch);
 			}
 			vscode.commands.executeCommand('dits.refresh');
 		}
@@ -212,6 +218,17 @@ exports.Repository = function (currentPath) {
 		} else {
 			vscode.window.showErrorMessage(
 				'The parent issue has not specified. Try manually.');
+		}
+	}
+
+	this.Delete = async function () {
+		const choice = await vscode.window.showInformationMessage(
+			'delete ${this.branches.currentTitle}?', 'yes', 'no');
+		if (choice === 'yes') {
+			if (this.Do(['checkout', this.branch.parent])) {
+				this.CommitMessage('.dits delete ' + this.branch.branch);
+				vscode.commands.executeCommand('dits.refresh');
+			}
 		}
 	}
 
