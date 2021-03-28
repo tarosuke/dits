@@ -26,11 +26,19 @@
 			"command": "dits.openChild",
 			"title": "open child"
 		},{
+			"command": "dits.finish",
+			"title": "finish this issue"
+		},{
 			"command": "dits.goParent",
 			"title": "go parent issue"
 		}],
 		"menus": {
 			"view/title": [
+				{
+					"command": "dits.finish",
+					"when": "view == issue",
+					"group": "issue"
+				},
 				{
 					"command": "dits.goParent",
 					"when": "view == issue",
