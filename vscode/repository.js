@@ -2,7 +2,6 @@
 
 const vscode = require('vscode');
 const child_process = require('child_process');
-const { notStrictEqual } = require('assert');
 
 
 
@@ -176,7 +175,7 @@ exports.Repository = function (currentPath) {
 				return;
 			}
 
-			this.CommitMessage('.dits new '+value);
+			this.CommitMessage(`.dits new ${value}`);
 
 			//ブランチ再読込
 			vscode.commands.executeCommand('dits.refresh');
@@ -184,15 +183,15 @@ exports.Repository = function (currentPath) {
 	}
 
 	this.OpenChild = function (ticket) {
-		const reopen = 0 <= this.branch.branches.indexOf('#' + ticket.hash);
+		const reopen = 0 <= this.branch.branches.indexOf(`#${ticket.hash}`);
 		const command = !reopen ?
-			['checkout', '-b', '#' + ticket.hash] :
-			['checkout', '#' + ticket.hash];
+			['checkout', '-b', `#${ticket.hash}`] :
+			['checkout', `#${ticket.hash}`];
 
 		if (this.Do(command)) {
 			if (!reopen) {
-				this.CommitMessage('.dits open ' + ticket.label);
-				this.CommitMessage('.dits parent ' + this.branch.branch);
+				this.CommitMessage(`.dits open ${ticket.label}`);
+				this.CommitMessage(`.dits parent ${this.branch.branch}`);
 			}
 			vscode.commands.executeCommand('dits.refresh');
 		}
@@ -226,7 +225,7 @@ exports.Repository = function (currentPath) {
 			'delete ${this.branches.currentTitle}?', 'yes', 'no');
 		if (choice === 'yes') {
 			if (this.Do(['checkout', this.branch.parent])) {
-				this.CommitMessage('.dits delete ' + this.branch.branch);
+				this.CommitMessage(`.dits delete ${this.branch.branch}`);
 				vscode.commands.executeCommand('dits.refresh');
 			}
 		}
@@ -234,7 +233,6 @@ exports.Repository = function (currentPath) {
 
 	//最初の状態を読み込む
 	this.LoadBranch();
-
 
 };
 
