@@ -25,9 +25,17 @@
 		},{
 			"command": "dits.openChild",
 			"title": "open child"
+		},{
+			"command": "dits.goParent",
+			"title": "go parent issue"
 		}],
 		"menus": {
 			"view/title": [
+				{
+					"command": "dits.goParent",
+					"when": "view == issue",
+					"group": "issue"
+				},
 				{
 					"command": "dits.newChild",
 					"when": "view == children",

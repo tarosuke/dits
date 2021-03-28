@@ -57,6 +57,10 @@ function activate(context) {
 		vscode.commands.registerCommand('dits.openChild', (v) => {
 			this.repository.OpenChild(v);
 		}));
+	context.subscriptions.push(
+		vscode.commands.registerCommand('dits.goParent', (v) => {
+			this.repository.GoParent(v);
+		}));
 }
 
 // this method is called when your extension is deactivated

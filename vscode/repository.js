@@ -187,6 +187,16 @@ exports.Repository = function (currentPath) {
 		}
 	}
 
+	this.GoParent = function (ticket) {
+		if (this.branch.parent) {
+			if (this.Do(['checkout', this.branch.parent])) {
+				vscode.commands.executeCommand('dits.refresh');
+			}
+		} else {
+			vscode.window.showErrorMessage(
+				'The parent issue has not specified. Try git-checkout manually.');
+		}
+	}
 
 	//最初の状態を読み込む
 	this.LoadBranch();
