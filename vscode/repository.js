@@ -178,13 +178,16 @@ exports.Repository = function (currentPath) {
 	}
 
 	this.OpenChild = function (ticket) {
-		const command = this.branch.branches.indexOf('#' + ticket.hash) < 0 ?
+		const reopen = 0 <= this.branch.branches.indexOf('#' + ticket.hash);
+		const command = !reopen ?
 			['checkout', '-b', '#' + ticket.hash] :
 			['checkout', '#' + ticket.hash];
 
 		if (this.Do(command)) {
-			this.CommitMessage('.dits open ' + ticket.label);
-			this.CommitMessage('.dits parent ' + this.branch.currentTitle);
+			if (!reopen) {
+				this.CommitMessage('.dits open ' + ticket.label);
+				this.CommitMessage('.dits parent ' + this.branch.currentTitle);
+			}
 			vscode.commands.executeCommand('dits.refresh');
 		}
 	}
