@@ -37,8 +37,10 @@ class Branch{
 		for (let item of b.split('\n')) {
 			item = item.trim().split(' ');
 			if (item[0] == '*') {
+				//カレントISSUEのhashを取得
+				this.branch = item[1].trim();
 				if (!this.currentTitle) {
-					//カレントタイトルを取得する(仮
+					//カレントISSUEのタイトル代わりにhashを設定しておく
 					this.currentTitle = item[1].trim();
 				}
 				this.branches.push(item[1].trim());
@@ -187,6 +189,18 @@ exports.Repository = function (currentPath) {
 		}
 	}
 
+	this.Finish = function(tiket) {
+		if (this.branch.parent) {
+			if (this.Do(['checkout', this.branch.parent])) {
+				this.Do(['merge', '--no-ff', this.branch.branch ]);
+				vscode.commands.executeCommand('dits.refresh');
+			}
+		} else {
+			vscode.window.showErrorMessage(
+				'The parent issue has not specified. Try manually.');
+		}
+	}
+
 	this.GoParent = function (ticket) {
 		if (this.branch.parent) {
 			if (this.Do(['checkout', this.branch.parent])) {
@@ -194,7 +208,7 @@ exports.Repository = function (currentPath) {
 			}
 		} else {
 			vscode.window.showErrorMessage(
-				'The parent issue has not specified. Try git-checkout manually.');
+				'The parent issue has not specified. Try manually.');
 		}
 	}
 
