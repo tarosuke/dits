@@ -48,7 +48,7 @@ function activate(context) {
 		vscode.commands.registerCommand('dits.refresh', () => {
 			this.repository.LoadBranch();
 			this.SetView();
-	}));
+		}));
 	context.subscriptions.push(
 		vscode.commands.registerCommand('dits.newChild', () => {
 			this.repository.NewChild();
@@ -64,6 +64,10 @@ function activate(context) {
 	context.subscriptions.push(
 		vscode.commands.registerCommand('dits.goParent', (v) => {
 			this.repository.GoParent(v);
+		}));
+	context.subscriptions.push(
+		vscode.commands.registerCommand('dits.delete', () => {
+			this.repository.Delete();
 		}));
 }
 
