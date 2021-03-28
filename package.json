@@ -29,6 +29,9 @@
 			"command": "dits.finish",
 			"title": "finish this issue"
 		},{
+			"command": "dits.delete",
+			"title": "delete this issue"
+		},{
 			"command": "dits.goParent",
 			"title": "go parent issue"
 		}],
@@ -36,6 +39,11 @@
 			"view/title": [
 				{
 					"command": "dits.finish",
+					"when": "view == issue",
+					"group": "issue"
+				},
+				{
+					"command": "dits.delete",
 					"when": "view == issue",
 					"group": "issue"
 				},
