@@ -19,10 +19,7 @@
 		"commands": [{
 			"command": "dits.refresh",
 			"title": "Refresh",
-			"icon": {
-				"light": "resources/light/refresh.svg",
-				"dark": "resources/dark/refresh.svg"
-			}
+			"icon": "./resources/refresh.svg"
 		},{
 			"command": "dits.newChild",
 			"title": "new"
