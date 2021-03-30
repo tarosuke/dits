@@ -197,7 +197,7 @@ exports.Repository = function (currentPath) {
 		}
 	}
 
-	this.Finish = function(tiket) {
+	this.Finish = function() {
 		if (this.branch.parent) {
 			if (this.Do(['checkout', this.branch.parent])) {
 				this.Do(['merge', '--no-ff', this.branch.branch ]);
@@ -209,7 +209,7 @@ exports.Repository = function (currentPath) {
 		}
 	}
 
-	this.GoParent = function (ticket) {
+	this.GoParent = function () {
 		if (this.branch.parent) {
 			if (this.Do(['checkout', this.branch.parent])) {
 				vscode.commands.executeCommand('dits.refresh');
