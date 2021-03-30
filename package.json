@@ -18,7 +18,8 @@
 	"contributes": {
 		"commands": [{
 			"command": "dits.refresh",
-			"title": "Refresh"
+			"title": "Refresh",
+			"icon": "./resources/refresh.svg"
 		},{
 			"command": "dits.newChild",
 			"title": "new"
@@ -38,6 +39,10 @@
 		"menus": {
 			"view/title": [
 				{
+					"command": "dits.refresh",
+					"when": "view == issue",
+					"group": "navigation"
+				},{
 					"command": "dits.finish",
 					"when": "view == issue",
 					"group": "issue"
