@@ -57,12 +57,12 @@ function activate(context) {
 			this.repository.OpenChild(v);
 		}));
 	context.subscriptions.push(
-		vscode.commands.registerCommand('dits.finish', (v) => {
-			this.repository.Finish(v);
+		vscode.commands.registerCommand('dits.finish', () => {
+			this.repository.Finish();
 		}));
 	context.subscriptions.push(
-		vscode.commands.registerCommand('dits.goParent', (v) => {
-			this.repository.GoParent(v);
+		vscode.commands.registerCommand('dits.goParent', () => {
+			this.repository.GoParent();
 		}));
 	context.subscriptions.push(
 		vscode.commands.registerCommand('dits.delete', () => {
