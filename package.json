@@ -17,10 +17,10 @@
 			"icon": "./resources/refresh.svg"
 		},{
 			"command": "dits.newChild",
-			"title": "new"
+			"title": "new subissue"
 		},{
 			"command": "dits.openChild",
-			"title": "open child"
+			"title": "open subissue"
 		},{
 			"command": "dits.finish",
 			"title": "finish this issue"
@@ -29,7 +29,7 @@
 			"title": "delete this issue"
 		},{
 			"command": "dits.goParent",
-			"title": "go parent issue"
+			"title": "go super issue"
 		}],
 		"menus": {
 			"view/title": [
@@ -86,11 +86,11 @@
 				},
 				{
 					"id": "children",
-					"name": "CHILDREN"
+					"name": "SUBISSUE"
 				},
 				{
 					"id": "closedChildren",
-					"name": "CLOSED CHILDREN",
+					"name": "CLOSED SUBISSUE",
 					"visibility": "collapsed"
 				}
 			]

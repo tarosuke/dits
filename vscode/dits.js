@@ -90,7 +90,7 @@ class IssueProvider {
 	getChildren(v) {
 		return [
 			{ label: 'title: ' + this.repos.GetCurrentBranch() },
-			{ label: 'parent: ' + this.repos.GetParent() }
+			{ label: 'super: ' + this.repos.GetParent() }
 		];
 	}
 }
