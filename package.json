@@ -1,8 +1,13 @@
 {
 	"name": "dits",
-	"description": "dits for VSCode",
+	"displayName": "DITS",
+	"description": "distoributed issue tracking system for VSCode",
 	"version": "0.0.0",
 	"publisher": "tarosuke",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tarosuke/dits.git"
+	},
 	"engines": {
 		"vscode": "^1.32.0"
 	},
