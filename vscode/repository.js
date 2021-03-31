@@ -75,6 +75,7 @@ class Branch{
 						this.deleted.push(cargs[2]);
 						break;
 					case 'parent': //親子ミットの設定
+					case 'super':
 						if (!this.parent) {
 							this.parent = cargs[2];
 						}
@@ -191,7 +192,7 @@ exports.Repository = function () {
 		if (this.Do(command)) {
 			if (!reopen) {
 				this.CommitMessage(`.dits open ${ticket.label}`);
-				this.CommitMessage(`.dits parent ${this.branch.branch}`);
+				this.CommitMessage(`.dits super ${this.branch.branch}`);
 			}
 			vscode.commands.executeCommand('dits.refresh');
 		}
@@ -205,7 +206,7 @@ exports.Repository = function () {
 			}
 		} else {
 			vscode.window.showErrorMessage(
-				'The parent issue has not specified. Try manually.');
+				'The super issue has not specified. Try manually.');
 		}
 	}
 
@@ -216,7 +217,7 @@ exports.Repository = function () {
 			}
 		} else {
 			vscode.window.showErrorMessage(
-				'The parent issue has not specified. Try manually.');
+				'The super issue has not specified. Try manually.');
 		}
 	}
 
