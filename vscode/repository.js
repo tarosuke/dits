@@ -103,13 +103,13 @@ class Branch{
 
 
 
-exports.Repository = function (currentPath) {
-	this.currentPath = currentPath;
+exports.Repository = function () {
+	this.currentPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
 
 	//Git呼び出し
 	this.Do = function (args) {
 		var out = child_process.spawnSync(
-			'git', args, { cwd: currentPath });
+			'git', args, { cwd: this.currentPath });
 		if (out.status) {
 			vscode.window.showErrorMessage(out.stderr.toString());
 			return;
