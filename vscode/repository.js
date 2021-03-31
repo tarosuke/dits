@@ -154,7 +154,7 @@ exports.Repository = function () {
 
 	//branchの読み込み
 	this.LoadBranch = function () {
-		if (!this.currentTitle) {
+		if (!this.currentPath) {
 			return;
 		}
 		const log = this.Do([
