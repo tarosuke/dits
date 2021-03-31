@@ -13,11 +13,9 @@ const { Repository } = require('./repository.js');
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
-	// this.currentPath = vscode.workspace.workspaceFolders;
-	this.currentPath = 'dits';
 
 	//リポジトリの取得
-	this.repository = new Repository(currentPath);
+	this.repository = new Repository();
 
 	this.SetView = function () {
 		//issueにwebViewを設定
