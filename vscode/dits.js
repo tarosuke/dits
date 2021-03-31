@@ -88,10 +88,11 @@ class IssueProvider {
 		return v;
 	}
 	getChildren(v) {
-		return [
-			{ label: 'title: ' + this.repos.GetCurrentBranch() },
-			{ label: 'parent: ' + this.repos.GetParent() }
-		];
+		var t = [{ label: 'title: ' + this.repos.GetCurrentBranch() }];
+		if (this.repos.GetParent()) {
+			t.push({ label: 'super: ' + this.repos.GetParent() });
+		}
+		return t;
 	}
 }
 
