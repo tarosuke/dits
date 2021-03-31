@@ -90,7 +90,8 @@
 				},
 				{
 					"id": "closedChildren",
-					"name": "CLOSED CHILDREN"
+					"name": "CLOSED CHILDREN",
+					"visibility": "collapsed"
 				}
 			]
 		}
