@@ -105,7 +105,14 @@ class Branch{
 
 
 exports.Repository = function () {
-	this.currentPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+	if (vscode.workspace.workspaceFolders.length) {
+		this.currentPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+	}
+
+	//workspacesにTreeViewを設定
+	vscode.window.createTreeView('workspaces', {
+		treeDataProvider: new WorkspaceProvider()
+	});
 
 	//Git呼び出し
 	this.Do = function (args) {
@@ -237,3 +244,21 @@ exports.Repository = function () {
 
 };
 
+
+class WorkspaceProvider {
+	constructor() {
+		this.list = [];
+		vscode.workspace.workspaceFolders.forEach(element => {
+			this.list.push({
+				label: element.name,
+				path: element.uri.fsPath
+			});
+		});
+	}
+	getTreeItem(v) {
+		return v;
+	}
+	getChildren(v) {
+		return this.list;
+	}
+}

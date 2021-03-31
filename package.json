@@ -82,6 +82,10 @@
 		"views": {
 			"dits": [
 				{
+					"id": "workspaces",
+					"name": "WORKSPACES"
+				},
+				{
 					"id": "issue",
 					"name": "ISSUE"
 				},
