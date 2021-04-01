@@ -1,8 +1,13 @@
 {
 	"name": "dits",
-	"description": "dits for VSCode",
+	"displayName": "DITS",
+	"description": "distoributed issue tracking system for VSCode",
 	"version": "0.0.0",
 	"publisher": "tarosuke",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tarosuke/dits.git"
+	},
 	"engines": {
 		"vscode": "^1.32.0"
 	},
@@ -15,6 +20,9 @@
 			"command": "dits.refresh",
 			"title": "Refresh",
 			"icon": "./resources/refresh.svg"
+		},{
+			"command": "dits.chdir",
+			"title": "change current directory"
 		},{
 			"command": "dits.newChild",
 			"title": "new subissue"
@@ -76,6 +84,10 @@
 		},
 		"views": {
 			"dits": [
+				{
+					"id": "workspaces",
+					"name": "WORKSPACES"
+				},
 				{
 					"id": "issue",
 					"name": "ISSUE"

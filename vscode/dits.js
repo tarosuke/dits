@@ -67,6 +67,10 @@ function activate(context) {
 		vscode.commands.registerCommand('dits.delete', () => {
 			this.repository.Delete();
 		}));
+	context.subscriptions.push(
+		vscode.commands.registerCommand('dits.chdir', (v) => {
+			this.repository.Chdir(v);
+		}));
 }
 
 // this method is called when your extension is deactivated

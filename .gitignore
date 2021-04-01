@@ -4,3 +4,4 @@
 /.vscode
 *.orig
 /node_modules
+/workspace.code-workspace
