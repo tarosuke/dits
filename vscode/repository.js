@@ -246,10 +246,10 @@ exports.Repository = function () {
 	}
 
 	this.Chdir = async function (path) {
-		vscode.window.showErrorMessage(`chdir:${path}`);
 		if (path) {
-			this.currentTitle = path;
+			this.currentPath = path;
 			this.LoadBranch();
+			vscode.commands.executeCommand('dits.refresh');
 		}
 	}
 
