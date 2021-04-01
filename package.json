@@ -56,11 +56,6 @@
 					"group": "issue"
 				},
 				{
-					"command": "dits.goParent",
-					"when": "view == issue",
-					"group": "issue"
-				},
-				{
 					"command": "dits.newChild",
 					"when": "view == children",
 					"group": "children"
