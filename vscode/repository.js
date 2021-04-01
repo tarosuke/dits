@@ -105,10 +105,20 @@ class Branch{
 
 
 exports.Repository = function () {
-	this.currentPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+	if (vscode.workspace.workspaceFolders) {
+		this.currentPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+	}
+
+	//workspacesにTreeViewを設定
+	vscode.window.createTreeView('workspaces', {
+		treeDataProvider: new WorkspaceProvider()
+	});
 
 	//Git呼び出し
 	this.Do = function (args) {
+		if (!this.currentPath) {
+			return;
+		}
 		var out = child_process.spawnSync(
 			'git', args, { cwd: this.currentPath });
 		if (out.status) {
@@ -125,25 +135,28 @@ exports.Repository = function () {
 
 	//ブランチ情報取得
 	this.GetBranch = function () {
-		return this.branch.items;
+		return this.currentPath ? this.branch.items : [];
 	}
 	this.GetParent = function () {
-		return this.branch.parent;
+		return this.currentPath ? this.branch.parent : "";
 	}
 	this.GetCurrentBranch = function () {
-		return this.branch.currentTitle;
+		return this.currentPath ? this.branch.currentTitle : "";
 	}
 
 	//子チケット情報取得
 	this.GetChildren = function () {
-		return this.branch.children;
+		return this.currentPath ? this.branch.children : [];
 	}
 	this.GetClosedChildren = function () {
-		return this.branch.closedChildren;
+		return this.currentPath ?  this.branch.closedChildren : [];
 	}
 
 	//branchの読み込み
 	this.LoadBranch = function () {
+		if (!this.currentPath) {
+			return;
+		}
 		const log = this.Do([
 			'log',
 			'--oneline',
@@ -232,8 +245,40 @@ exports.Repository = function () {
 		}
 	}
 
+	this.Chdir = async function (path) {
+		if (path) {
+			this.currentPath = path;
+			this.LoadBranch();
+			vscode.commands.executeCommand('dits.refresh');
+		}
+	}
+
 	//最初の状態を読み込む
 	this.LoadBranch();
 
 };
 
+
+class WorkspaceProvider {
+	constructor() {
+		this.list = [];
+		if (vscode.workspace.workspaceFolders) {
+			vscode.workspace.workspaceFolders.forEach(element => {
+				this.list.push({
+					label: element.name,
+					path: element.uri.fsPath,
+					command: {
+						command: 'dits.chdir',
+						arguments: [ element.uri.fsPath ]
+					}
+				});
+			});
+		}
+	}
+	getTreeItem(v) {
+		return v;
+	}
+	getChildren(v) {
+		return this.list;
+	}
+}
