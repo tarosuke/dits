@@ -218,8 +218,9 @@ exports.Repository = function () {
 
 	this.Finish = function() {
 		if (this.branch.parent) {
-			if (this.Do(['checkout', this.branch.parent])) {
-				this.Do(['merge', '--no-ff', this.branch.branch ]);
+			if (this.Do(['checkout', this.branch.parent]) &&
+				this.Do(['merge', '--no-ff', this.branch.branch]) &&
+				this.Do(['branch', '-d', this.branch.branch])){
 				vscode.commands.executeCommand('dits.refresh');
 			}
 		} else {
