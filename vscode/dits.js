@@ -94,7 +94,10 @@ class IssueProvider {
 	getChildren(v) {
 		var t = [{ label: 'title: ' + this.repos.GetCurrentBranch() }];
 		if (this.repos.GetParent()) {
-			t.push({ label: 'super: ' + this.repos.GetParent() });
+			t.push({
+				label: 'super: ' + this.repos.GetParent(),
+				command: { command: 'dits.goParent' }
+			});
 		}
 		return t;
 	}
