@@ -245,6 +245,14 @@ exports.Repository = function () {
 		}
 	}
 
+	this.Chdir = async function (path) {
+		if (path) {
+			this.currentPath = path;
+			this.LoadBranch();
+			vscode.commands.executeCommand('dits.refresh');
+		}
+	}
+
 	//最初の状態を読み込む
 	this.LoadBranch();
 
@@ -258,7 +266,11 @@ class WorkspaceProvider {
 			vscode.workspace.workspaceFolders.forEach(element => {
 				this.list.push({
 					label: element.name,
-					path: element.uri.fsPath
+					path: element.uri.fsPath,
+					command: {
+						command: 'dits.chdir',
+						arguments: [ element.uri.fsPath ]
+					}
 				});
 			});
 		}

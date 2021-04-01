@@ -21,6 +21,9 @@
 			"title": "Refresh",
 			"icon": "./resources/refresh.svg"
 		},{
+			"command": "dits.chdir",
+			"title": "change current directory"
+		},{
 			"command": "dits.newChild",
 			"title": "new subissue"
 		},{
