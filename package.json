@@ -81,7 +81,7 @@
 			"dits": [
 				{
 					"id": "workspaces",
-					"name": "WORKSPACES"
+					"name": "WORKSPACE"
 				},
 				{
 					"id": "issue",
