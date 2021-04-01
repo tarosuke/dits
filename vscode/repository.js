@@ -105,7 +105,14 @@ class Branch{
 
 
 exports.Repository = function () {
-	this.currentPath = 'dits';
+	if (vscode.workspace.workspaceFolders) {
+		this.currentPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+	}
+
+	//workspacesにTreeViewを設定
+	vscode.window.createTreeView('workspaces', {
+		treeDataProvider: new WorkspaceProvider()
+	});
 
 	//workspacesにTreeViewを設定
 	vscode.window.createTreeView('workspaces', {
