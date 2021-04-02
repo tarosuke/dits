@@ -126,7 +126,7 @@ class ChildrenTreeviewProvider {
 		return {
 			label: {
 				label: v.label,
-				highlights: [[0, v.label.length]]
+				highlights: [[0, v.notOpened ? v.label.length : 0]]
 			},
 			hash: v.hash,
 			command: {

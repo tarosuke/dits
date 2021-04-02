@@ -14,6 +14,9 @@ class Branch{
 		this.closedChildren = [];
 		this.branches = [];
 
+		//ブランチ名一覧を取得
+		this.ParseBranch(branch);
+
 		//ログをパース
 		for (var item of log.split('\n')) {
 			item = item.trim();
@@ -30,8 +33,6 @@ class Branch{
 				}
 			}
 		}
-		//ブランチ名一覧を取得
-		this.ParseBranch(branch);
 	}
 	ParseBranch = function (b) {
 		for (let item of b.split('\n')) {
@@ -60,7 +61,7 @@ class Branch{
 						commit.label = commit.label.slice(10);
 						if (this.deleted.indexOf(`#${commit.hash}`) < 0) {
 							if (this.closed.indexOf(commit.hash) < 0) {
-								if (this.branches.indexOf(`#{commit.hash}`) < 0) {
+								if (this.branches.indexOf(`#${commit.hash}`) < 0) {
 									//ブランチがないので新規フラグ
 									commit.notOpened = true;
 								}
