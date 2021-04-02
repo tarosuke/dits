@@ -114,11 +114,6 @@ exports.Repository = function () {
 		treeDataProvider: new WorkspaceProvider()
 	});
 
-	//workspacesにTreeViewを設定
-	vscode.window.createTreeView('workspaces', {
-		treeDataProvider: new WorkspaceProvider()
-	});
-
 	//Git呼び出し
 	this.Do = function (args) {
 		if (!this.currentPath) {
