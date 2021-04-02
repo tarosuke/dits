@@ -246,6 +246,7 @@ exports.Repository = function () {
 		if (choice === 'yes') {
 			if (this.Do(['checkout', this.branch.parent])) {
 				this.CommitMessage(`.dits delete ${this.branch.branch}`);
+				this.Do(['branch', '-D', this.branch.branch]);
 				vscode.commands.executeCommand('dits.refresh');
 			}
 		}
