@@ -242,7 +242,7 @@ exports.Repository = function () {
 
 	this.Delete = async function () {
 		const choice = await vscode.window.showInformationMessage(
-			'delete ${this.branches.currentTitle}?', 'yes', 'no');
+			`delete ${this.branch.currentTitle}?`, 'yes', 'no');
 		if (choice === 'yes') {
 			if (this.Do(['checkout', this.branch.parent])) {
 				this.CommitMessage(`.dits delete ${this.branch.branch}`);
