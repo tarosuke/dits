@@ -14,6 +14,9 @@ class Branch{
 		this.closedChildren = [];
 		this.branches = [];
 
+		//ブランチ名一覧を取得
+		this.ParseBranch(branch);
+
 		//ログをパース
 		for (var item of log.split('\n')) {
 			item = item.trim();
@@ -30,8 +33,6 @@ class Branch{
 				}
 			}
 		}
-		//ブランチ名一覧を取得
-		this.ParseBranch(branch);
 	}
 	ParseBranch = function (b) {
 		for (let item of b.split('\n')) {
@@ -60,6 +61,10 @@ class Branch{
 						commit.label = commit.label.slice(10);
 						if (this.deleted.indexOf(`#${commit.hash}`) < 0) {
 							if (this.closed.indexOf(commit.hash) < 0) {
+								if (this.branches.indexOf(`#${commit.hash}`) < 0) {
+									//ブランチがないので新規フラグ
+									commit.notOpened = true;
+								}
 								this.children.push(commit);
 							} else {
 								this.closedChildren.push(commit);
@@ -74,7 +79,7 @@ class Branch{
 					case 'delete': //削除済み子チケット
 						this.deleted.push(cargs[2]);
 						break;
-					case 'parent': //親子ミットの設定
+					case 'parent': //superIssueの設定
 					case 'super':
 						if (!this.parent) {
 							this.parent = cargs[2];

@@ -124,7 +124,11 @@ class ChildrenTreeviewProvider {
 	}
 	getTreeItem(v) {
 		return {
-			label: v,
+			label: {
+				label: v.label,
+				highlights: [[0, v.notOpened ? v.label.length : 0]]
+			},
+			hash: v.hash,
 			command: {
 				command: 'dits.openChild',
 				arguments: [ v ]
