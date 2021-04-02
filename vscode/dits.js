@@ -125,6 +125,10 @@ class ChildrenTreeviewProvider {
 	getTreeItem(v) {
 		return {
 			label: v,
+			command: {
+				command: 'dits.openChild',
+				arguments: [ v ]
+			}
 		};
 	}
 	getChildren(v) {
