@@ -33,6 +33,11 @@ class Branch{
 				}
 			}
 		}
+
+		if (!this.currentTitle) {
+			//カレントISSUEのタイトル代わりにhashを設定しておく
+			this.currentTitle = branch;
+		}
 	}
 	ParseBranch = function (b) {
 		for (let item of b.split('\n')) {
@@ -40,10 +45,6 @@ class Branch{
 			if (item[0] == '*') {
 				//カレントISSUEのhashを取得
 				this.branch = item[1].trim();
-				if (!this.currentTitle) {
-					//カレントISSUEのタイトル代わりにhashを設定しておく
-					this.currentTitle = item[1].trim();
-				}
 				this.branches.push(item[1].trim());
 			} else {
 				this.branches.push(item[0].trim());
