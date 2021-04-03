@@ -229,11 +229,6 @@ exports.Repository = function () {
 		if (this.branch.parent) {
 			if (this.Do(['checkout', this.branch.parent]) &&
 				this.Do(['merge', '--no-ff', this.branch.branch]) &&
-				this.Do([
-					'branch',
-					'-D',
-					'-r',
-					`origin/${this.branch.branch}`]) &&
 				this.Do(['branch', '-d', this.branch.branch])) {
 				vscode.commands.executeCommand('dits.refresh');
 			} else {
@@ -263,13 +258,6 @@ exports.Repository = function () {
 		if (choice === 'yes') {
 			if (this.Do(['checkout', this.branch.parent])) {
 				this.CommitMessage(`.dits delete ${this.branch.branch}`);
-				if (this.isRemotes) {
-					this.Do([
-						'branch',
-						'-D',
-						'-r',
-						`origin/${this.branch.branch}`]);
-				}
 				this.Do(['branch', '-D', this.branch.branch]);
 				vscode.commands.executeCommand('dits.refresh');
 			}
