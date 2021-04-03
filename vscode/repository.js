@@ -229,8 +229,16 @@ exports.Repository = function () {
 		if (this.branch.parent) {
 			if (this.Do(['checkout', this.branch.parent]) &&
 				this.Do(['merge', '--no-ff', this.branch.branch]) &&
-				this.Do(['branch', '-d', this.branch.branch])){
+				this.Do([
+					'branch',
+					'-D',
+					'-r',
+					`origin/${this.branch.branch}`]) &&
+				this.Do(['branch', '-d', this.branch.branch])) {
 				vscode.commands.executeCommand('dits.refresh');
+			} else {
+				vscode.window.showErrorMessage(
+					'Failed some operations. Try manually.');
 			}
 		} else {
 			vscode.window.showErrorMessage(
