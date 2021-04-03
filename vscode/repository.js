@@ -217,8 +217,7 @@ exports.Repository = function () {
 					this.Do(['checkout', this.branch.branch]);
 					this.Do(['branch', '-D', branchName]);
 					this.Do(['fetch']);
-					this.Do(['branch', '-t',
-						branchName, `origin/${branchName}`]);
+					this.Do(['branch', branchName, `origin/${branchName}`]);
 				}
 			}
 			vscode.commands.executeCommand('dits.refresh');
@@ -255,7 +254,9 @@ exports.Repository = function () {
 		if (choice === 'yes') {
 			if (this.Do(['checkout', this.branch.parent])) {
 				this.CommitMessage(`.dits delete ${this.branch.branch}`);
-				this.Do(['branch', '-D', this.branch.branch]);
+				this.Do(this.isRemotes ?
+					['branch', '-D', '-r', this.branch.branch] :
+					['branch', '-D', this.branch.branch]);
 				vscode.commands.executeCommand('dits.refresh');
 			}
 		}
