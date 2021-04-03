@@ -202,15 +202,24 @@ exports.Repository = function () {
 	}
 
 	this.OpenChild = function (ticket) {
-		const reopen = 0 <= this.branch.branches.indexOf(`#${ticket.hash}`);
+		const branchName = `#${ticket.hash}`;
+		const reopen = 0 <= this.branch.branches.indexOf(branchName);
 		const command = !reopen ?
-			['checkout', '-b', `#${ticket.hash}`] :
-			['checkout', `#${ticket.hash}`];
+			['checkout', '-b', branchName] :
+			['checkout', branchName];
 
 		if (this.Do(command)) {
 			if (!reopen) {
 				this.CommitMessage(`.dits open ${ticket.label}`);
 				this.CommitMessage(`.dits super ${this.branch.branch}`);
+				if (this.isRemotes && !this.Do(['push', '--set-upstream', 'origin', branchName])) {
+					vscode.window.showInformationMessage(`Issue ${ticket.label} is already exsits.`);
+					this.Do(['checkout', this.branch.branch]);
+					this.Do(['branch', '-D', branchName]);
+					this.Do(['fetch']);
+					this.Do(['branch', '-t',
+						branchName, `origin/${branchName}`]);
+				}
 			}
 			vscode.commands.executeCommand('dits.refresh');
 		}
@@ -259,6 +268,9 @@ exports.Repository = function () {
 			vscode.commands.executeCommand('dits.refresh');
 		}
 	}
+
+	//リモートの有無を確認
+	this.isRemotes = 0 < this.Do(['remote']).split('\n').length;
 
 	//最初の状態を読み込む
 	this.LoadBranch();
