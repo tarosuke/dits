@@ -36,7 +36,7 @@ class Branch{
 
 		if (!this.currentTitle) {
 			//カレントISSUEのタイトル代わりにhashを設定しておく
-			this.currentTitle = branch;
+			this.currentTitle = this.branch;
 		}
 	}
 	ParseBranch = function (b) {
