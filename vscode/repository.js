@@ -189,7 +189,7 @@ exports.Repository = function () {
 	}
 
 	//子チケット追加
-	this.NewChild = function () {
+	this.NewChild = async function () {
 
 		let options = {
 			prompt: "Title: ",
@@ -212,7 +212,7 @@ exports.Repository = function () {
 		});
 	}
 
-	this.OpenChild = function (ticket) {
+	this.OpenChild = async function (ticket) {
 		const branchName = `#${ticket.hash}`;
 		const reopen = 0 <= this.branch.branches.indexOf(branchName);
 		const command = !reopen ?
@@ -235,7 +235,7 @@ exports.Repository = function () {
 		}
 	}
 
-	this.Finish = function() {
+	this.Finish = async function() {
 		if (this.branch.parent) {
 			if (this.Do(['checkout', this.branch.parent]) &&
 				this.Do(['merge', '--no-ff', this.branch.branch]) &&
@@ -251,7 +251,7 @@ exports.Repository = function () {
 		}
 	}
 
-	this.GoParent = function () {
+	this.GoParent = async function () {
 		if (this.branch.parent) {
 			if (this.Do(['checkout', this.branch.parent])) {
 				vscode.commands.executeCommand('dits.refresh');
