@@ -149,6 +149,16 @@ exports.Repository = function () {
 	this.GetCurrentBranch = function () {
 		return this.currentPath ? this.branch.currentTitle : "";
 	}
+	this.GetProgress = function () {
+		if (!this.currentPath) {
+			return -1;
+		}
+		let numChild =
+			this.branch.children.length +
+			this.branch.closedChildren.length;
+		return !numChild ? 0 :
+			this.branch.closedChildren.length / numChild;
+	}
 
 	//子チケット情報取得
 	this.GetChildren = function () {
