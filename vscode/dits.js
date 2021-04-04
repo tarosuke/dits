@@ -92,7 +92,13 @@ class IssueProvider {
 		return v;
 	}
 	getChildren(v) {
-		var t = [{ label: 'title: ' + this.repos.GetCurrentBranch() }];
+		var t = [];
+		const progress = this.repos.GetProgress() * 100;
+		if (0 <= progress) {
+			t.push({
+				label: `(${progress.toFixed(1)}%) ${this.repos.GetCurrentBranch()}`
+			});
+		}
 		if (this.repos.GetParent()) {
 			t.push({
 				label: 'super: ' + this.repos.GetParent(),
