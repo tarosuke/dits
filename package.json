@@ -98,7 +98,13 @@
 					"visibility": "collapsed"
 				}
 			]
-		}
+		},
+		"viewsWelcome": [
+			{
+				"view": "workspaces",
+				"contents": "No Git workspaces.\n[Clone](command:dits.clone)\nor Open workspace."
+			}
+		]
 	},
 	"scripts": {},
 	"devDependencies": {
