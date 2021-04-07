@@ -225,13 +225,29 @@ exports.Repository = function () {
 			if (!reopen) {
 				this.CommitMessage(`.dits open ${ticket.label}`);
 				this.CommitMessage(`.dits super ${this.branch.branch}`);
-				if (this.isRemotes && !this.Do(['push', '--set-upstream', 'origin', branchName], true)) {
-					vscode.window.showWarningMessage(`Issue ${ticket.label} is already exsits.`);
-					this.Do(['checkout', this.branch.branch]);
-					this.Do(['branch', '-D', branchName]);
-					this.Do(['fetch']);
-					this.Do(['branch', branchName, `origin/${branchName}`]);
-				}
+
+
+				//プログレスバーを表示
+				vscode.window.withProgress({
+					location: vscode.ProgressLocation.Notification,
+					title: 'syncing remote',
+					cancellable: false
+				}, (progress, token) => {
+					progress.report({ increment: 0 });
+
+					const p = new Promise((resolve, reject) => {
+						if (this.isRemotes && !this.Do(['push', '--set-upstream', 'origin', branchName], true)) {
+							vscode.window.showWarningMessage(`Issue ${ticket.label} is already exsits.`);
+							this.Do(['checkout', this.branch.branch]);
+							this.Do(['branch', '-D', branchName]);
+							this.Do(['fetch']);
+							this.Do(['branch', branchName, `origin/${branchName}`]);
+						}
+						resolve();
+						vscode.commands.executeCommand('dits.refresh');
+					});
+					return p;
+				})
 			}
 			vscode.commands.executeCommand('dits.refresh');
 		}
