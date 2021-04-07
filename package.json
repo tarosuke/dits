@@ -63,7 +63,11 @@
 				}
 			],
 			"view/item/context": [
-			]
+			{
+				"command": "dits.delete",
+				"when": "view == children",
+				"group": "issue"
+			}]
 		},
 		"viewsContainers": {
 			"activitybar": [
