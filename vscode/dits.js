@@ -68,6 +68,10 @@ function activate(context) {
 			this.repository.Delete();
 		}));
 	context.subscriptions.push(
+		vscode.commands.registerCommand('dits.deleteSub', (v) => {
+			this.repository.DeleteSub(v);
+		}));
+	context.subscriptions.push(
 		vscode.commands.registerCommand('dits.chdir', (v) => {
 			this.repository.Chdir(v);
 		}));

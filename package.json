@@ -37,6 +37,9 @@
 			"command": "dits.delete",
 			"title": "delete this issue"
 		},{
+			"command": "dits.deleteSub",
+			"title": "delete the issue"
+		},{
 			"command": "dits.goParent",
 			"title": "go super issue"
 		}],
@@ -64,7 +67,7 @@
 			],
 			"view/item/context": [
 			{
-				"command": "dits.delete",
+				"command": "dits.deleteSub",
 				"when": "view == children",
 				"group": "issue"
 			}]
