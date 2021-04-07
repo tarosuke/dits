@@ -121,14 +121,16 @@ exports.Repository = function () {
 	});
 
 	//Git呼び出し
-	this.Do = function (args) {
+	this.Do = function (args, supressError=false) {
 		if (!this.currentPath) {
 			return;
 		}
 		var out = child_process.spawnSync(
 			'git', args, { cwd: this.currentPath });
 		if (out.status) {
-			vscode.window.showErrorMessage(out.stderr.toString());
+			if (!supressError) {
+				vscode.window.showErrorMessage(out.stderr.toString());
+			}
 			return;
 		}
 		return out.output.toString().slice(1, -1);
@@ -223,8 +225,8 @@ exports.Repository = function () {
 			if (!reopen) {
 				this.CommitMessage(`.dits open ${ticket.label}`);
 				this.CommitMessage(`.dits super ${this.branch.branch}`);
-				if (this.isRemotes && !this.Do(['push', '--set-upstream', 'origin', branchName])) {
-					vscode.window.showInformationMessage(`Issue ${ticket.label} is already exsits.`);
+				if (this.isRemotes && !this.Do(['push', '--set-upstream', 'origin', branchName], true)) {
+					vscode.window.showWarningMessage(`Issue ${ticket.label} is already exsits.`);
 					this.Do(['checkout', this.branch.branch]);
 					this.Do(['branch', '-D', branchName]);
 					this.Do(['fetch']);
