@@ -226,7 +226,7 @@ exports.Repository = function () {
 				this.CommitMessage(`.dits open ${ticket.label}`);
 				this.CommitMessage(`.dits super ${this.branch.branch}`);
 				if (this.isRemotes && !this.Do(['push', '--set-upstream', 'origin', branchName], true)) {
-					vscode.window.showInformationMessage(`Issue ${ticket.label} is already exsits.`);
+					vscode.window.showWarningMessage(`Issue ${ticket.label} is already exsits.`);
 					this.Do(['checkout', this.branch.branch]);
 					this.Do(['branch', '-D', branchName]);
 					this.Do(['fetch']);
