@@ -276,6 +276,15 @@ exports.Repository = function () {
 		}
 	}
 
+	this.DeleteSub = async function (v) {
+		const choice = await vscode.window.showInformationMessage(
+			`delete ${v.label}?`, 'yes', 'no');
+		if (choice === 'yes') {
+			this.CommitMessage(`.dits delete #${v.hash}`);
+			vscode.commands.executeCommand('dits.refresh');
+		}
+	}
+
 	this.Chdir = async function (path) {
 		if (path) {
 			this.currentPath = path;
