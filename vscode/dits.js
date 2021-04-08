@@ -57,7 +57,19 @@ function activate(context) {
 		}));
 	context.subscriptions.push(
 		vscode.commands.registerCommand('dits.finish', () => {
-			this.repository.Finish();
+			vscode.window.withProgress({
+				location: vscode.ProgressLocation.Notification,
+				title: 'Finishing issue',
+				cancellable: false
+			}, (progress, token) => {
+				const p = new Promise((resolve, reject) => {
+					progress.report({ increment: 0 });
+					this.repository.Finish();
+					progress.report({ increment: 100 });
+					resolve();
+				});
+				return p;
+			});
 		}));
 	context.subscriptions.push(
 		vscode.commands.registerCommand('dits.goParent', () => {
@@ -65,7 +77,19 @@ function activate(context) {
 		}));
 	context.subscriptions.push(
 		vscode.commands.registerCommand('dits.delete', () => {
-			this.repository.Delete();
+			vscode.window.withProgress({
+				location: vscode.ProgressLocation.Notification,
+				title: 'Finishing issue',
+				cancellable: false
+			}, (progress, token) => {
+				const p = new Promise((resolve, reject) => {
+					progress.report({ increment: 0 });
+					this.repository.Delete();
+					progress.report({ increment: 100 });
+					resolve();
+				});
+				return p;
+			});
 		}));
 	context.subscriptions.push(
 		vscode.commands.registerCommand('dits.deleteSub', (v) => {
