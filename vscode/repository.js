@@ -225,23 +225,40 @@ exports.Repository = function () {
 			if (!reopen) {
 				this.CommitMessage(`.dits open ${ticket.label}`);
 				this.CommitMessage(`.dits super ${this.branch.branch}`);
-				if (this.isRemotes && !this.Do(['push', '--set-upstream', 'origin', branchName], true)) {
-					vscode.window.showWarningMessage(`Issue ${ticket.label} is already exsits.`);
-					this.Do(['checkout', this.branch.branch]);
-					this.Do(['branch', '-D', branchName]);
-					this.Do(['fetch']);
-					this.Do(['branch', branchName, `origin/${branchName}`]);
-				}
+
+				vscode.window.withProgress({
+					location: vscode.ProgressLocation.Notification,
+					title: 'syncing remote',
+					cancellable: false
+				}, (progress, token) => {
+					progress.report({ increment: 0 });
+
+					const p = new Promise((resolve, reject) => {
+						if (this.isRemotes && !this.Do(['push', '--set-upstream', 'origin', branchName], true)) {
+							vscode.window.showWarningMessage(`Issue ${ticket.label} is already exsits.`);
+							this.Do(['checkout', this.branch.branch]);
+							this.Do(['branch', '-D', branchName]);
+							this.Do(['fetch']);
+							this.Do(['branch', branchName, `origin/${branchName}`]);
+						}
+						progress.report({ increment: 100 });
+						resolve();
+						vscode.commands.executeCommand('dits.refresh');
+					});
+					return p;
+				})
 			}
 			vscode.commands.executeCommand('dits.refresh');
 		}
 	}
 
-	this.Finish = async function() {
+	this.Finish = function() {
 		if (this.branch.parent) {
 			if (this.Do(['checkout', this.branch.parent]) &&
 				this.Do(['merge', '--no-ff', this.branch.branch]) &&
-				this.Do(['branch', '-D', this.branch.branch])) {
+				this.Do(['branch', '-D', this.branch.branch]) && (
+					!this.isRemotes ||
+					this.Do(['push', 'origin', `:${this.branch.branch}`]))) {
 				vscode.commands.executeCommand('dits.refresh');
 			} else {
 				vscode.window.showErrorMessage(
@@ -268,11 +285,29 @@ exports.Repository = function () {
 		const choice = await vscode.window.showInformationMessage(
 			`delete ${this.branch.currentTitle}?`, 'yes', 'no');
 		if (choice === 'yes') {
-			if (this.Do(['checkout', this.branch.parent])) {
-				this.CommitMessage(`.dits delete ${this.branch.branch}`);
-				this.Do(['branch', '-D', this.branch.branch]);
-				vscode.commands.executeCommand('dits.refresh');
-			}
+			vscode.window.withProgress({
+				location: vscode.ProgressLocation.Notification,
+				title: 'Deleting issue',
+				cancellable: false
+			}, (progress, token) => {
+				const p = new Promise((resolve, reject) => {
+					progress.report({ increment: 0 });
+					if (this.Do(['checkout', this.branch.parent])) {
+						this.CommitMessage(`.dits delete ${this.branch.branch}`);
+						this.Do(['branch', '-D', this.branch.branch]);
+						if (this.isRemotes) {
+							this.Do([
+								'push',
+								'origin',
+								`:${this.branch.branch}`]);
+						}
+						vscode.commands.executeCommand('dits.refresh');
+					}
+					progress.report({ increment: 100 });
+					resolve();
+				});
+				return p;
+			});
 		}
 	}
 
