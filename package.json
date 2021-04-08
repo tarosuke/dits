@@ -23,25 +23,28 @@
 			"icon": "./resources/refresh.svg"
 		},{
 			"command": "dits.chdir",
-			"title": "change current directory"
+			"title": "Change current directory"
 		},{
 			"command": "dits.newChild",
-			"title": "new subissue"
+			"title": "New subissue"
 		},{
 			"command": "dits.openChild",
-			"title": "open subissue"
+			"title": "Open subissue"
+		},{
+			"command": "dits.release",
+			"title": "Prepare release"
 		},{
 			"command": "dits.finish",
-			"title": "finish this issue"
+			"title": "Finish this issue"
 		},{
 			"command": "dits.delete",
-			"title": "delete this issue"
+			"title": "Delete this issue"
 		},{
 			"command": "dits.deleteSub",
-			"title": "delete the issue"
+			"title": "Delete the issue"
 		},{
 			"command": "dits.goParent",
-			"title": "go super issue"
+			"title": "Checkout super issue"
 		}],
 		"menus": {
 			"view/title": [
@@ -56,6 +59,11 @@
 				},
 				{
 					"command": "dits.delete",
+					"when": "view == issue",
+					"group": "issue"
+				},
+				{
+					"command": "dits.release",
 					"when": "view == issue",
 					"group": "issue"
 				},
