@@ -337,6 +337,15 @@ exports.Repository = function () {
 		}
 	}
 
+	this.Release = function () {
+		if (!this.currentPath) {
+			return;
+		}
+		this.CommitMessage('.dits release ' +
+			(this.branch.revision ? this.branch.revision : '0,0,0'));
+		vscode.commands.executeCommand('dits.refresh');
+	}
+
 	//リモートの有無を確認
 	this.isRemotes = 0 < this.Do(['remote']).split('\n').length;
 

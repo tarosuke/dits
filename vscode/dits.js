@@ -48,6 +48,22 @@ function activate(context) {
 			this.SetView();
 		}));
 	context.subscriptions.push(
+		vscode.commands.registerCommand('dits.release', () => {
+			vscode.window.withProgress({
+				location: vscode.ProgressLocation.Notification,
+				title: 'Finishing issue',
+				cancellable: false
+			}, (progress, token) => {
+				const p = new Promise((resolve, reject) => {
+					progress.report({ increment: 0 });
+					this.repository.Release();
+					progress.report({ increment: 100 });
+					resolve();
+				});
+				return p;
+			});
+		}));
+	context.subscriptions.push(
 		vscode.commands.registerCommand('dits.newChild', () => {
 			this.repository.NewChild();
 		}));
