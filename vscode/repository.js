@@ -60,14 +60,18 @@ class Branch{
 				switch (cargs[1]) {
 					case 'new': //新規子チケット
 						commit.label = commit.label.slice(10);
-						if (this.deleted.indexOf(`#${commit.hash}`) < 0) {
-							if (this.closed.indexOf(commit.hash) < 0) {
-								if (this.branches.indexOf(`#${commit.hash}`) < 0) {
+						const h = `#${commit.hash}`;
+						if (this.deleted.indexOf(h) < 0) {
+							const ce = this.closed.find(
+								e => e.hash == commit.hash);
+							if (!ce) {
+								if (this.branches.indexOf(h) < 0) {
 									//ブランチがないので新規フラグ
 									commit.notOpened = true;
 								}
 								this.children.push(commit);
 							} else {
+								commit.revision = ce.revision;
 								this.closedChildren.push(commit);
 							}
 						}
@@ -91,13 +95,18 @@ class Branch{
 							this.currentTitle = commit.label.slice(12);
 						}
 						break;
+					case 'release': //リリース情報
+						this.revision = cargs[2];
+						break;
 					default:
 						break;
 				}
 				break;
 			case 'Merge': //merge=closd
-				this.closed.push(cargs[2].slice(
-					cargs[2][1] == '#' ? 2 : 1, -1));
+				this.closed.push({
+					hash: cargs[2].slice(cargs[2][1] == '#' ? 2 : 1, -1),
+					revision: this.revision
+				});
 				break;
 			default: //コメント
 				this.items.push(commit);
