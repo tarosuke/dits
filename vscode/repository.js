@@ -2,6 +2,7 @@
 
 const vscode = require('vscode');
 const child_process = require('child_process');
+const fs = require("fs");
 
 
 
@@ -97,6 +98,9 @@ class Branch{
 						break;
 					case 'release': //リリース情報
 						this.revision = cargs[2];
+						if (!this.lastRevision) {
+							this.lastRevision = this.revision;
+						}
 						break;
 					default:
 						break;
@@ -341,9 +345,62 @@ exports.Repository = function () {
 		if (!this.currentPath) {
 			return;
 		}
-		this.CommitMessage('.dits release ' +
-			(this.branch.revision ? this.branch.revision : '0,0,0'));
-		vscode.commands.executeCommand('dits.refresh');
+		rev = this.branch.lastRevision;
+		if (rev) {
+			revs = rev.split('.');
+			revs[2] = parseInt(revs[2]) + 1;
+			rev = `${revs[0]}.${revs[1]}.${revs[2]}`;
+		} else {
+			rev = '0.0.0';
+		}
+
+		let options = {
+			prompt: "Revision: ",
+			placeHolder: "(revision to release)",
+			value: rev
+		}
+
+		vscode.window.showInputBox(options).then((value) => {
+			if (!value) {
+				return;
+			}
+			value.trim();
+			if (!value.length) {
+				return;
+			}
+
+			commitMessage = `.dits release ${value}`;
+			this.CommitMessage(commitMessage);
+			vscode.commands.executeCommand('dits.refresh');
+
+			var note = '# Release note\n\n';
+			var r = null;
+			this.branch.closedChildren.forEach(e => {
+				if (r != e.revision) {
+					r = e.revision;
+					note += `## ${r}\n`;
+				}
+				note += `* ${e.label}\n`;
+			});
+			fs.writeFileSync(`${this.currentPath}/RELEASE.md`, note, 'utf8');
+			this.Do(['add', 'RELEASE.md']);
+			this.Do(['commit', '--amend', `-m ${commitMessage}`]);
+
+			vscode.window.withProgress({
+				location: vscode.ProgressLocation.Notification,
+				title: 'Generating release tag...',
+				cancellable: false
+			}, (progress, token) => {
+				const p = new Promise((resolve, reject) => {
+					progress.report({ increment: 0 });
+					this.Do(['tag', value]);
+					this.Do(['push', '--tags']);
+					progress.report({ increment: 100 });
+					resolve();
+				});
+				return p;
+			});
+		});
 	}
 
 	//リモートの有無を確認
