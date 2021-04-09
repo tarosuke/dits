@@ -370,6 +370,8 @@ exports.Repository = function () {
 
 			this.CommitMessage(`.dits release ${value}`);
 			vscode.commands.executeCommand('dits.refresh');
+			this.Do(['tag', value]);
+			this.Do(['push', '--tags']);
 		});
 	}
 
