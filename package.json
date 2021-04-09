@@ -33,16 +33,20 @@
 			"title": "Open subissue"
 		},{
 			"command": "dits.release",
-			"title": "Prepare release"
+			"title": "Prepare release",
+			"icon": "$(check-all)"
 		},{
 			"command": "dits.finish",
-			"title": "Finish this issue"
+			"title": "Finish this issue",
+			"icon": "$(check)"
 		},{
 			"command": "dits.delete",
-			"title": "Delete this issue"
+			"title": "Delete this issue",
+			"icon": "$(remove)"
 		},{
 			"command": "dits.deleteSub",
-			"title": "Delete the issue"
+			"title": "Delete the issue",
+			"icon": "$(remove)"
 		},{
 			"command": "dits.goParent",
 			"title": "Checkout super issue"
@@ -56,17 +60,17 @@
 				},{
 					"command": "dits.finish",
 					"when": "view == issue",
-					"group": "issue"
+					"group": "navigation"
 				},
 				{
 					"command": "dits.delete",
 					"when": "view == issue",
-					"group": "issue"
+					"group": "navigation"
 				},
 				{
 					"command": "dits.release",
 					"when": "view == issue",
-					"group": "issue"
+					"group": "navigation"
 				},
 				{
 					"command": "dits.newChild",
@@ -77,8 +81,7 @@
 			"view/item/context": [
 			{
 				"command": "dits.deleteSub",
-				"when": "view == children",
-				"group": "issue"
+				"group": "navigation"
 			}]
 		},
 		"viewsContainers": {
