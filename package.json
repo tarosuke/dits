@@ -98,7 +98,8 @@
 				},
 				{
 					"id": "issue",
-					"name": "ISSUE"
+					"name": "ISSUE",
+					"icon": "$(issue-opened)"
 				},
 				{
 					"id": "log",
@@ -106,12 +107,14 @@
 				},
 				{
 					"id": "children",
-					"name": "SUBISSUE"
+					"name": "SUBISSUE",
+					"icon": "#(issues)"
 				},
 				{
 					"id": "closedChildren",
 					"name": "CLOSED SUBISSUE",
-					"visibility": "collapsed"
+					"visibility": "collapsed",
+					"icon": "$(issue-closed)"
 				}
 			]
 		},
