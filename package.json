@@ -20,13 +20,14 @@
 		"commands": [{
 			"command": "dits.refresh",
 			"title": "Refresh",
-			"icon": "$(extensions-refresh)"
+			"icon": "$(refresh)"
 		},{
 			"command": "dits.chdir",
 			"title": "Change current directory"
 		},{
 			"command": "dits.newChild",
-			"title": "New subissue"
+			"title": "New subissue",
+			"icon": "$(add)"
 		},{
 			"command": "dits.openChild",
 			"title": "Open subissue"
@@ -70,7 +71,7 @@
 				{
 					"command": "dits.newChild",
 					"when": "view == children",
-					"group": "children"
+					"group": "navigation"
 				}
 			],
 			"view/item/context": [
