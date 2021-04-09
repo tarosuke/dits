@@ -20,7 +20,7 @@
 		"commands": [{
 			"command": "dits.refresh",
 			"title": "Refresh",
-			"icon": "./resources/refresh.svg"
+			"icon": "$(extensions-refresh)"
 		},{
 			"command": "dits.chdir",
 			"title": "Change current directory"
