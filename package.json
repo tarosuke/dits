@@ -20,28 +20,33 @@
 		"commands": [{
 			"command": "dits.refresh",
 			"title": "Refresh",
-			"icon": "$(extensions-refresh)"
+			"icon": "$(refresh)"
 		},{
 			"command": "dits.chdir",
 			"title": "Change current directory"
 		},{
 			"command": "dits.newChild",
-			"title": "New subissue"
+			"title": "New subissue",
+			"icon": "$(add)"
 		},{
 			"command": "dits.openChild",
 			"title": "Open subissue"
 		},{
 			"command": "dits.release",
-			"title": "Prepare release"
+			"title": "Prepare release",
+			"icon": "$(check-all)"
 		},{
 			"command": "dits.finish",
-			"title": "Finish this issue"
+			"title": "Finish this issue",
+			"icon": "$(check)"
 		},{
 			"command": "dits.delete",
-			"title": "Delete this issue"
+			"title": "Delete this issue",
+			"icon": "$(remove)"
 		},{
 			"command": "dits.deleteSub",
-			"title": "Delete the issue"
+			"title": "Delete the issue",
+			"icon": "$(remove)"
 		},{
 			"command": "dits.goParent",
 			"title": "Checkout super issue"
@@ -55,29 +60,28 @@
 				},{
 					"command": "dits.finish",
 					"when": "view == issue",
-					"group": "issue"
+					"group": "navigation"
 				},
 				{
 					"command": "dits.delete",
 					"when": "view == issue",
-					"group": "issue"
+					"group": "navigation"
 				},
 				{
 					"command": "dits.release",
 					"when": "view == issue",
-					"group": "issue"
+					"group": "navigation"
 				},
 				{
 					"command": "dits.newChild",
 					"when": "view == children",
-					"group": "children"
+					"group": "navigation"
 				}
 			],
 			"view/item/context": [
 			{
 				"command": "dits.deleteSub",
-				"when": "view == children",
-				"group": "issue"
+				"group": "navigation"
 			}]
 		},
 		"viewsContainers": {
@@ -97,7 +101,8 @@
 				},
 				{
 					"id": "issue",
-					"name": "ISSUE"
+					"name": "ISSUE",
+					"icon": "$(issue-opened)"
 				},
 				{
 					"id": "log",
@@ -105,12 +110,14 @@
 				},
 				{
 					"id": "children",
-					"name": "SUBISSUE"
+					"name": "SUBISSUE",
+					"icon": "#(issues)"
 				},
 				{
 					"id": "closedChildren",
 					"name": "CLOSED SUBISSUE",
-					"visibility": "collapsed"
+					"visibility": "collapsed",
+					"icon": "$(issue-closed)"
 				}
 			]
 		},
