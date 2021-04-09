@@ -2,6 +2,7 @@
 
 const vscode = require('vscode');
 const child_process = require('child_process');
+const fs = require("fs");
 
 
 
@@ -368,8 +369,22 @@ exports.Repository = function () {
 				return;
 			}
 
-			this.CommitMessage(`.dits release ${value}`);
+			commitMessage = `.dits release ${value}`;
+			this.CommitMessage(commitMessage);
 			vscode.commands.executeCommand('dits.refresh');
+
+			var note = '# Release note\n\n';
+			var r = null;
+			this.branch.closedChildren.forEach(e => {
+				if (r != e.revision) {
+					r = e.revision;
+					note += `## ${r}\n`;
+				}
+				note += `* ${e.label}\n`;
+			});
+			fs.writeFileSync(`${this.currentPath}/RELEASE.md`, note, 'utf8');
+			this.Do(['add', 'RELEASE.md']);
+			this.Do(['commit', '--amend', `-m ${commitMessage}`]);
 
 			vscode.window.withProgress({
 				location: vscode.ProgressLocation.Notification,
