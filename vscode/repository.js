@@ -344,9 +344,33 @@ exports.Repository = function () {
 		if (!this.currentPath) {
 			return;
 		}
-		this.CommitMessage('.dits release ' +
-			(this.branch.revision ? this.branch.revision : '0,0,0'));
-		vscode.commands.executeCommand('dits.refresh');
+		rev = this.branch.lastRevision;
+		if (rev) {
+			revs = rev.split('.');
+			revs[2] = parseInt(revs[2]) + 1;
+			rev = `${revs[0]}.${revs[1]}.${revs[2]}`;
+		} else {
+			rev = '0.0.0';
+		}
+
+		let options = {
+			prompt: "Revision: ",
+			placeHolder: "(revision to release)",
+			value: rev
+		}
+
+		vscode.window.showInputBox(options).then((value) => {
+			if (!value) {
+				return;
+			}
+			value.trim();
+			if (!value.length) {
+				return;
+			}
+
+			this.CommitMessage(`.dits release ${value}`);
+			vscode.commands.executeCommand('dits.refresh');
+		});
 	}
 
 	//リモートの有無を確認
