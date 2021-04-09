@@ -2,6 +2,7 @@
 
 const vscode = require('vscode');
 const child_process = require('child_process');
+const fs = require("fs");
 
 
 
@@ -60,14 +61,18 @@ class Branch{
 				switch (cargs[1]) {
 					case 'new': //新規子チケット
 						commit.label = commit.label.slice(10);
-						if (this.deleted.indexOf(`#${commit.hash}`) < 0) {
-							if (this.closed.indexOf(commit.hash) < 0) {
-								if (this.branches.indexOf(`#${commit.hash}`) < 0) {
+						const h = `#${commit.hash}`;
+						if (this.deleted.indexOf(h) < 0) {
+							const ce = this.closed.find(
+								e => e.hash == commit.hash);
+							if (!ce) {
+								if (this.branches.indexOf(h) < 0) {
 									//ブランチがないので新規フラグ
 									commit.notOpened = true;
 								}
 								this.children.push(commit);
 							} else {
+								commit.revision = ce.revision;
 								this.closedChildren.push(commit);
 							}
 						}
@@ -91,13 +96,21 @@ class Branch{
 							this.currentTitle = commit.label.slice(12);
 						}
 						break;
+					case 'release': //リリース情報
+						this.revision = cargs[2];
+						if (!this.lastRevision) {
+							this.lastRevision = this.revision;
+						}
+						break;
 					default:
 						break;
 				}
 				break;
 			case 'Merge': //merge=closd
-				this.closed.push(cargs[2].slice(
-					cargs[2][1] == '#' ? 2 : 1, -1));
+				this.closed.push({
+					hash: cargs[2].slice(cargs[2][1] == '#' ? 2 : 1, -1),
+					revision: this.revision
+				});
 				break;
 			default: //コメント
 				this.items.push(commit);
@@ -326,6 +339,68 @@ exports.Repository = function () {
 			this.LoadBranch();
 			vscode.commands.executeCommand('dits.refresh');
 		}
+	}
+
+	this.Release = function () {
+		if (!this.currentPath) {
+			return;
+		}
+		rev = this.branch.lastRevision;
+		if (rev) {
+			revs = rev.split('.');
+			revs[2] = parseInt(revs[2]) + 1;
+			rev = `${revs[0]}.${revs[1]}.${revs[2]}`;
+		} else {
+			rev = '0.0.0';
+		}
+
+		let options = {
+			prompt: "Revision: ",
+			placeHolder: "(revision to release)",
+			value: rev
+		}
+
+		vscode.window.showInputBox(options).then((value) => {
+			if (!value) {
+				return;
+			}
+			value.trim();
+			if (!value.length) {
+				return;
+			}
+
+			commitMessage = `.dits release ${value}`;
+			this.CommitMessage(commitMessage);
+			vscode.commands.executeCommand('dits.refresh');
+
+			var note = '# Release note\n\n';
+			var r = null;
+			this.branch.closedChildren.forEach(e => {
+				if (r != e.revision) {
+					r = e.revision;
+					note += `## ${r}\n`;
+				}
+				note += `* ${e.label}\n`;
+			});
+			fs.writeFileSync(`${this.currentPath}/RELEASE.md`, note, 'utf8');
+			this.Do(['add', 'RELEASE.md']);
+			this.Do(['commit', '--amend', `-m ${commitMessage}`]);
+
+			vscode.window.withProgress({
+				location: vscode.ProgressLocation.Notification,
+				title: 'Generating release tag...',
+				cancellable: false
+			}, (progress, token) => {
+				const p = new Promise((resolve, reject) => {
+					progress.report({ increment: 0 });
+					this.Do(['tag', value]);
+					this.Do(['push', '--tags']);
+					progress.report({ increment: 100 });
+					resolve();
+				});
+				return p;
+			});
+		});
 	}
 
 	//リモートの有無を確認

@@ -48,6 +48,10 @@ function activate(context) {
 			this.SetView();
 		}));
 	context.subscriptions.push(
+		vscode.commands.registerCommand('dits.release', () => {
+			this.repository.Release();
+		}));
+	context.subscriptions.push(
 		vscode.commands.registerCommand('dits.newChild', () => {
 			this.repository.NewChild();
 		}));
