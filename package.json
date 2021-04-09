@@ -117,7 +117,7 @@
 		"viewsWelcome": [
 			{
 				"view": "workspaces",
-				"contents": "No Git workspaces.\n[Clone](command:dits.clone)\nor Open workspace."
+				"contents": "No Git workdirectory.\nOpen folder or workspace."
 			}
 		]
 	},
