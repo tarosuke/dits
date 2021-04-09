@@ -97,6 +97,9 @@ class Branch{
 						break;
 					case 'release': //リリース情報
 						this.revision = cargs[2];
+						if (!this.lastRevision) {
+							this.lastRevision = this.revision;
+						}
 						break;
 					default:
 						break;
