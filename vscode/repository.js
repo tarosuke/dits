@@ -370,8 +370,21 @@ exports.Repository = function () {
 
 			this.CommitMessage(`.dits release ${value}`);
 			vscode.commands.executeCommand('dits.refresh');
-			this.Do(['tag', value]);
-			this.Do(['push', '--tags']);
+
+			vscode.window.withProgress({
+				location: vscode.ProgressLocation.Notification,
+				title: 'Generating release tag...',
+				cancellable: false
+			}, (progress, token) => {
+				const p = new Promise((resolve, reject) => {
+					progress.report({ increment: 0 });
+					this.Do(['tag', value]);
+					this.Do(['push', '--tags']);
+					progress.report({ increment: 100 });
+					resolve();
+				});
+				return p;
+			});
 		});
 	}
 
