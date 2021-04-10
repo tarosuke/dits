@@ -106,7 +106,7 @@ class Branch{
 						break;
 				}
 				break;
-			case 'Merge': //merge=closd
+			case 'Merge': //merge=closed
 				this.closed.push({
 					hash: cargs[2].slice(cargs[2][1] == '#' ? 2 : 1, -1),
 					revision: this.revision
@@ -325,6 +325,11 @@ exports.Repository = function () {
 	}
 
 	this.DeleteSub = async function (v) {
+		if (!v.notOpened) {
+			vscode.window.showErrorMessage(
+				`Issue ${v.label} is opened already.`);
+			return;
+		}
 		const choice = await vscode.window.showInformationMessage(
 			`delete ${v.label}?`, 'yes', 'no');
 		if (choice === 'yes') {
