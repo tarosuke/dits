@@ -295,6 +295,11 @@ exports.Repository = function () {
 	}
 
 	this.Delete = async function () {
+		if (this.branch.children.length) {
+			vscode.window.showErrorMessage(
+				'There are subIssues. First, Delete or finish them.');
+			return;
+		}
 		const choice = await vscode.window.showInformationMessage(
 			`delete ${this.branch.currentTitle}?`, 'yes', 'no');
 		if (choice === 'yes') {
@@ -327,7 +332,7 @@ exports.Repository = function () {
 	this.DeleteSub = async function (v) {
 		if (!v.notOpened) {
 			vscode.window.showErrorMessage(
-				`Issue ${v.label} is opened already.`);
+				`Issue ${v.label} is opened already. First, Open it.`);
 			return;
 		}
 		const choice = await vscode.window.showInformationMessage(
