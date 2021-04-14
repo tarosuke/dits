@@ -67,7 +67,10 @@ class Branch{
 					case 'new': //新規子チケット
 						commit.label = commit.label.slice(10);
 						const h = `#${commit.hash}`;
-						if (this.deleted.indexOf(h) < 0) {
+						if (!this.deleted.find(
+							e => this.backwordCompatible ?
+								h.indexOf(e) == 0 :
+								e == h)) {
 							const ce = this.closed.find(
 								e => this.backwordCompatible ?
 									commit.hash.indexOf(e.hash) == 0 :
