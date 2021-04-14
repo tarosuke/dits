@@ -90,6 +90,7 @@ class Branch{
 					case 'open': //ブランチの始まり=解析終了
 						if (!this.currentTitle) {
 							this.currentTitle = commit.label.slice(11);
+							this.openHash = commit.hash;
 						}
 						return false;
 					case 'delete': //削除済み子チケット
@@ -171,6 +172,14 @@ exports.Repository = function () {
 		if (!this.currentPath) {
 			return null;
 		}
+		owner = null;
+		if (this.branch.openHash) {
+			owner = this.Do([
+				'log',
+				'--no-walk',
+				'--pretty=short',
+				this.branch.openHash]).split('\n')[1].slice(8, -1);
+		}
 		let numChild =
 			this.branch.children.length +
 			this.branch.closedChildren.length;
@@ -178,7 +187,8 @@ exports.Repository = function () {
 			issue: this.branch.currentTitle,
 			parent: this.branch.parent,
 			progress: !numChild ? 0 :
-				this.branch.closedChildren.length / numChild
+				this.branch.closedChildren.length / numChild,
+			owner: owner
 		};
 	}
 	this.GetBranch = function () {
