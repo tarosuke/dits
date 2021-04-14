@@ -166,7 +166,21 @@ exports.Repository = function () {
 		this.Do(['commit', '--allow-empty', '-m', message]);
 	}
 
-	//ブランチ情報取得
+	//issue情報取得
+	this.GetIssueInfo = function () {
+		if (!this.currentPath) {
+			return null;
+		}
+		let numChild =
+			this.branch.children.length +
+			this.branch.closedChildren.length;
+		return {
+			issue: this.branch.currentTitle,
+			parent: this.branch.parent,
+			progress: !numChild ? 0 :
+				this.branch.closedChildren.length / numChild
+		};
+	}
 	this.GetBranch = function () {
 		return this.currentPath ? this.branch.items : [];
 	}

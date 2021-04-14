@@ -112,16 +112,20 @@ class IssueProvider {
 		return v;
 	}
 	getChildren(v) {
+		const issue = this.repos.GetIssueInfo();
+		if (!issue) {
+			return;
+		}
 		var t = [];
-		const progress = this.repos.GetProgress() * 100;
+		const progress = issue.progress * 100;
 		if (0 <= progress) {
 			t.push({
-				label: `(${progress.toFixed(1)}%) ${this.repos.GetCurrentBranch()}`
+				label: `(${progress.toFixed(1)}%) ${issue.issue}`
 			});
 		}
-		if (this.repos.GetParent()) {
+		if (issue.parent) {
 			t.push({
-				label: 'super: ' + this.repos.GetParent(),
+				label: 'super: ' + issue.parent,
 				command: { command: 'dits.goParent' }
 			});
 		}
