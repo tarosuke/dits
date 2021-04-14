@@ -123,9 +123,14 @@ class IssueProvider {
 				label: `(${progress.toFixed(1)}%) ${issue.issue}`
 			});
 		}
+		if (issue.owner) {
+			t.push({
+				label: `owner:${issue.owner}`
+			});
+		}
 		if (issue.parent) {
 			t.push({
-				label: 'super: ' + issue.parent,
+				label: `super: ${issue.parent}`,
 				command: { command: 'dits.goParent' }
 			});
 		}
