@@ -132,7 +132,7 @@
 			"properties": {
 				"dits.backwordCompatible":{
 					"type": "boolean",
-					"default" : "false",
+					"default" : false,
 					"description": "Recognize short hash and branchname without #"
 				}
 			}
