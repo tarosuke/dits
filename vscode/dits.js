@@ -120,18 +120,22 @@ class IssueProvider {
 		const progress = issue.progress * 100;
 		if (0 <= progress) {
 			t.push({
-				label: `(${progress.toFixed(1)}%) ${issue.issue}`
+				label: `(${progress.toFixed(1)}%) ${issue.issue}`,
+				iconPath: new vscode.ThemeIcon('issue-opened')
 			});
 		}
 		if (issue.owner) {
 			t.push({
-				label: `owner:${issue.owner}`
+				label: `${issue.owner}`,
+				iconPath: new vscode.ThemeIcon('account')
 			});
 		}
 		if (issue.parent) {
 			t.push({
-				label: `super: ${issue.parent}`,
-				command: { command: 'dits.goParent' }
+				label: `${issue.parent}`,
+				command: { command: 'dits.goParent' },
+				iconPath: new vscode.ThemeIcon('fold-up')
+
 			});
 		}
 		return t;
