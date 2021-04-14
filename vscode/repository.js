@@ -14,6 +14,8 @@ class Branch{
 		this.deleted = [];
 		this.closedChildren = [];
 		this.branches = [];
+		this.backwordCompatible =
+			vscode.workspace.getConfiguration('dits').get('backwordCompatible');
 
 		//ブランチ名一覧を取得
 		this.ParseBranch(branch);
@@ -67,7 +69,9 @@ class Branch{
 						const h = `#${commit.hash}`;
 						if (this.deleted.indexOf(h) < 0) {
 							const ce = this.closed.find(
-								e => e.hash == commit.hash);
+								e => this.backwordCompatible ?
+									commit.hash.indexOf(e.hash) == 0 :
+									e.hash == commit.hash);
 							if (!ce) {
 								if (this.branches.indexOf(h) < 0) {
 									//ブランチがないので新規フラグ
@@ -111,7 +115,9 @@ class Branch{
 				break;
 			case 'Merge': //merge=closed
 				this.closed.push({
-					hash: cargs[2].slice(cargs[2][1] == '#' ? 2 : 1, -1),
+					hash: cargs[2].slice(
+						this.backwordCompatible ?
+							cargs[2][1] == '#' ? 2 : 1 : 1, -1),
 					revision: this.revision
 				});
 				break;
