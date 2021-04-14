@@ -22,10 +22,13 @@ class Branch{
 		for (var item of log.split('\n')) {
 			item = item.trim();
 			if (item.length) {
+				const tokens = item.split(' ');
+				const hashLen = tokens[0].length;
+
 				//各コミット分
 				var commit = {
-					hash: item.slice(0, 7).trim(),
-					label: item.slice(8).trim(),
+					hash: tokens[0],
+					label: item.slice(hashLen).trim(),
 					collapsibleState: null
 				};
 
