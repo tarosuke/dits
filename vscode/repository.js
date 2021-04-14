@@ -74,7 +74,7 @@ class Branch{
 							const ce = this.closed.find(
 								e => this.backwordCompatible ?
 									commit.hash.indexOf(e.hash) == 0 :
-									e.hash == commit.hash);
+									e.hash == h);
 							if (!ce) {
 								if (this.branches.indexOf(h) < 0) {
 									//ブランチがないので新規フラグ
