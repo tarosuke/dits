@@ -126,7 +126,17 @@
 				"view": "workspaces",
 				"contents": "No Git workdirectory.\nOpen folder or workspace."
 			}
-		]
+		],
+		"configuration": {
+			"title": "dits",
+			"properties": {
+				"dits.backwordCompatible":{
+					"type": "boolean",
+					"default" : "false",
+					"description": "Recognize short hash and branchname without #"
+				}
+			}
+		}
 	},
 	"scripts": {},
 	"devDependencies": {
