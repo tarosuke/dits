@@ -192,7 +192,8 @@ exports.Repository = function () {
 			'log',
 			'--oneline',
 			'--no-decorate',
-			'--first-parent']);
+			'--first-parent',
+			'--no-abbrev-commit']);
 		if (!log) {
 			return; //failed
 		}
