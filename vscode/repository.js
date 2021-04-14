@@ -166,25 +166,23 @@ exports.Repository = function () {
 		this.Do(['commit', '--allow-empty', '-m', message]);
 	}
 
-	//ブランチ情報取得
-	this.GetBranch = function () {
-		return this.currentPath ? this.branch.items : [];
-	}
-	this.GetParent = function () {
-		return this.currentPath ? this.branch.parent : "";
-	}
-	this.GetCurrentBranch = function () {
-		return this.currentPath ? this.branch.currentTitle : "";
-	}
-	this.GetProgress = function () {
+	//issue情報取得
+	this.GetIssueInfo = function () {
 		if (!this.currentPath) {
-			return -1;
+			return null;
 		}
 		let numChild =
 			this.branch.children.length +
 			this.branch.closedChildren.length;
-		return !numChild ? 0 :
-			this.branch.closedChildren.length / numChild;
+		return {
+			issue: this.branch.currentTitle,
+			parent: this.branch.parent,
+			progress: !numChild ? 0 :
+				this.branch.closedChildren.length / numChild
+		};
+	}
+	this.GetBranch = function () {
+		return this.currentPath ? this.branch.items : [];
 	}
 
 	//子チケット情報取得
