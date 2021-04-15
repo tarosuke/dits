@@ -178,7 +178,7 @@ exports.Repository = function () {
 				'log',
 				'--no-walk',
 				'--pretty=short',
-				this.branch.openHash]).split('\n')[1].slice(8, -1);
+				this.branch.openHash]).split('\n')[1].slice(8);
 		}
 		let numChild =
 			this.branch.children.length +
