@@ -298,6 +298,11 @@ exports.Repository = function () {
 	}
 
 	this.Finish = function() {
+		if (this.branch.children.length) {
+			vscode.window.showErrorMessage(
+				'There are subIssues. First, Delete or Finish them.');
+			return;
+		}
 		if (this.branch.parent) {
 			if (this.Do(['checkout', this.branch.parent.branch]) &&
 				this.Do(['merge', '--no-ff', this.branch.branch]) &&
@@ -329,7 +334,7 @@ exports.Repository = function () {
 	this.Delete = async function () {
 		if (this.branch.children.length) {
 			vscode.window.showErrorMessage(
-				'There are subIssues. First, Delete or finish them.');
+				'There are subIssues. First, Delete or Finish them.');
 			return;
 		}
 		if (!this.branch.parent) {
