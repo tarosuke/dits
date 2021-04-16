@@ -45,8 +45,7 @@
 			"icon": "$(remove)"
 		},{
 			"command": "dits.deleteSub",
-			"title": "Delete the issue",
-			"icon": "$(remove)"
+			"title": "Delete the issue"
 		},{
 			"command": "dits.goParent",
 			"title": "Checkout super issue"
@@ -81,6 +80,7 @@
 			"view/item/context": [
 			{
 				"command": "dits.deleteSub",
+				"when": "view == children",
 				"group": "navigation"
 			}]
 		},
