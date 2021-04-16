@@ -39,6 +39,15 @@ class Branch{
 			}
 		}
 
+		//closedからラベルがない要素を除去
+		var newClosed = [];
+		this.closed.forEach(e => {
+			if (e.label) {
+				newClosed.push(e);
+			}
+		});
+		this.closed = newClosed;
+
 		if (!this.currentTitle) {
 			//カレントISSUEのタイトル代わりにhashを設定しておく
 			this.currentTitle = this.branch;
