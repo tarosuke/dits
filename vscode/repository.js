@@ -266,7 +266,10 @@ exports.Repository = function () {
 		if (this.Do(command)) {
 			if (!reopen) {
 				this.CommitMessage(`.dits open ${ticket.label}`);
-				this.CommitMessage(`.dits super ${this.branch.branch}`);
+				this.CommitMessage(
+					'.dits super ' +
+					this.branch.branch + ' ' +
+					this.branch.currentTitle);
 
 				vscode.window.withProgress({
 					location: vscode.ProgressLocation.Notification,
