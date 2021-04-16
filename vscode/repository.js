@@ -12,7 +12,6 @@ class Branch{
 		this.children = [];
 		this.closed = [];
 		this.deleted = [];
-		this.closedChildren = [];
 		this.branches = [];
 		this.backwordCompatible =
 			vscode.workspace.getConfiguration('dits').get('backwordCompatible');
@@ -39,6 +38,15 @@ class Branch{
 				}
 			}
 		}
+
+		//closedからラベルがない要素を除去
+		var newClosed = [];
+		this.closed.forEach(e => {
+			if (e.label) {
+				newClosed.push(e);
+			}
+		});
+		this.closed = newClosed;
 
 		if (!this.currentTitle) {
 			//カレントISSUEのタイトル代わりにhashを設定しておく
@@ -82,8 +90,8 @@ class Branch{
 								}
 								this.children.push(commit);
 							} else {
-								commit.revision = ce.revision;
-								this.closedChildren.push(commit);
+								//エントリにラベルを追加
+								ce.label = commit.label;
 							}
 						}
 						break;
@@ -190,12 +198,12 @@ exports.Repository = function () {
 		}
 		let numChild =
 			this.branch.children.length +
-			this.branch.closedChildren.length;
+			this.branch.closed.length;
 		return {
 			issue: this.branch.currentTitle,
 			parent: this.branch.parent ? this.branch.parent.label : null,
 			progress: !numChild ? 0 :
-				this.branch.closedChildren.length / numChild,
+				this.branch.closed.length / numChild,
 			owner: owner
 		};
 	}
@@ -208,7 +216,7 @@ exports.Repository = function () {
 		return this.currentPath ? this.branch.children : [];
 	}
 	this.GetClosedChildren = function () {
-		return this.currentPath ?  this.branch.closedChildren : [];
+		return this.currentPath ?  this.branch.closed : [];
 	}
 
 	//branchの読み込み
@@ -426,7 +434,7 @@ exports.Repository = function () {
 
 			var note = '# Release note\n\n';
 			var r = null;
-			this.branch.closedChildren.forEach(e => {
+			this.branch.closed.forEach(e => {
 				if (r != e.revision) {
 					r = e.revision;
 					note += `## ${r}\n`;
