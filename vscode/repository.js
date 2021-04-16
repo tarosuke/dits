@@ -98,8 +98,16 @@ class Branch{
 						break;
 					case 'parent': //superIssueの設定
 					case 'super':
+						const pLabel =
+							commit.label.slice(
+							cargs[0].length +
+							cargs[1].length +
+							cargs[2].length + 3);
 						if (!this.parent) {
-							this.parent = cargs[2];
+							this.parent = {
+								branch: cargs[2],
+								label: pLabel ? pLabel : cargs[2]
+							}
 						}
 						break;
 					case 'title': //チケットのタイトル
@@ -185,7 +193,7 @@ exports.Repository = function () {
 			this.branch.closedChildren.length;
 		return {
 			issue: this.branch.currentTitle,
-			parent: this.branch.parent,
+			parent: this.branch.parent ? this.branch.parent.label : null,
 			progress: !numChild ? 0 :
 				this.branch.closedChildren.length / numChild,
 			owner: owner
@@ -258,7 +266,10 @@ exports.Repository = function () {
 		if (this.Do(command)) {
 			if (!reopen) {
 				this.CommitMessage(`.dits open ${ticket.label}`);
-				this.CommitMessage(`.dits super ${this.branch.branch}`);
+				this.CommitMessage(
+					'.dits super ' +
+					this.branch.branch + ' ' +
+					this.branch.currentTitle);
 
 				vscode.window.withProgress({
 					location: vscode.ProgressLocation.Notification,
@@ -288,7 +299,7 @@ exports.Repository = function () {
 
 	this.Finish = function() {
 		if (this.branch.parent) {
-			if (this.Do(['checkout', this.branch.parent]) &&
+			if (this.Do(['checkout', this.branch.parent.branch]) &&
 				this.Do(['merge', '--no-ff', this.branch.branch]) &&
 				this.Do(['branch', '-D', this.branch.branch]) && (
 					!this.isRemotes ||
@@ -306,7 +317,7 @@ exports.Repository = function () {
 
 	this.GoParent = async function () {
 		if (this.branch.parent) {
-			if (this.Do(['checkout', this.branch.parent])) {
+			if (this.Do(['checkout', this.branch.parent.branch])) {
 				vscode.commands.executeCommand('dits.refresh');
 			}
 		} else {
@@ -321,6 +332,10 @@ exports.Repository = function () {
 				'There are subIssues. First, Delete or finish them.');
 			return;
 		}
+		if (!this.branch.parent) {
+			vscode.window.showErrorMessage(`$(branch.branch) isn\'t an issue.`);
+			return;
+		}
 		const choice = await vscode.window.showInformationMessage(
 			`delete ${this.branch.currentTitle}?`, 'yes', 'no');
 		if (choice === 'yes') {
@@ -331,7 +346,7 @@ exports.Repository = function () {
 			}, (progress, token) => {
 				const p = new Promise((resolve, reject) => {
 					progress.report({ increment: 0 });
-					if (this.Do(['checkout', this.branch.parent])) {
+					if (this.Do(['checkout', this.branch.parent.branch])) {
 						this.CommitMessage(`.dits delete ${this.branch.branch}`);
 						this.Do(['branch', '-D', this.branch.branch]);
 						if (this.isRemotes) {
