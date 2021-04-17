@@ -2,8 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 const vscode = require('vscode');
 
-const { Repository } = require('./repository.js');
-
+const { DitsRepository } = require('./repository');
 
 
 // this method is called when your extension is activated
@@ -15,7 +14,8 @@ const { Repository } = require('./repository.js');
 function activate(context) {
 
 	//リポジトリの取得
-	this.repository = new Repository();
+	// this.repository = new Repository();
+	this.repository = new DitsRepository();
 
 	this.SetView = function () {
 		//issueにwebViewを設定

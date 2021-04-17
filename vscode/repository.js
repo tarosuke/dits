@@ -17,7 +17,6 @@ class Commit{
 
 class Commits {
 	#commits = [];
-	constructor() { };
 	constructor(commitArray) {
 		this.#commits = commitArray;
 	}
@@ -32,7 +31,6 @@ class Commits {
 class BranchInfo {
 	current;
 	list = [];
-	constructor() { }
 	Add(name) {
 		this.list.push(name);
 	}
@@ -264,7 +262,8 @@ class Issue {
 
 
 
-
+exports.DitsRepository = function () {
+}
 
 
 
