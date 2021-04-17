@@ -7,9 +7,11 @@ const fs = require("fs");
 
 
 class Commit{
-	constructor(hash, comment) {
+	hash;
+	message;
+	constructor(hash, message) {
 		this.hash = hash;
-		this.comment = comment;
+		this.message = message;
 	};
 };
 
@@ -21,6 +23,9 @@ class Commits {
 	}
 	Add(commit) {
 		this.#commits.push(commit);
+	}
+	FerEach(f) {
+		this.#commits.forEach(f);
 	}
 };
 
@@ -112,6 +117,164 @@ class Git {
 		return bi;
 	}
 };
+
+
+
+//issue関連
+class Issue {
+	//後方互換性設定
+	#backwordCompatible =
+		vscode.workspace.getConfiguration('dits').get('backwordCompatible');
+
+	//dits管理外commit
+	log;
+	//現issue
+	currentTitle;
+	openHash;
+	lastRevision;
+	//状態別issueリスト
+	supeer;
+	sub;
+	closed;
+	deleted;
+
+	//ditsコマンドの解釈
+	#IsMatch(s, l) {
+		return this.backwordCompatible ?
+			longHash.indexOf(shortHash) == 0 :
+			shortHash == longHash;
+	}
+
+	#NewSubIssue(c, cargs) {
+		const label = c.message.slice(10);
+		const h = `#${commit.hash}`;
+		if (!this.deleted.find(
+			e => this.backwordCompatible ?
+				h.indexOf(e) == 0 :
+				e == h)) {
+			const ce = this.closed.find(
+				e => this.backwordCompatible ?
+					commit.hash.indexOf(e.hash) == 0 :
+					e.hash == h);
+			if (!ce) {
+				if (this.branches.indexOf(h) < 0) {
+					//ブランチがないので新規フラグ
+					commit.notOpened = true;
+				}
+				this.children.push(commit);
+			} else {
+				//エントリにラベルを追加
+				ce.label = commit.label;
+			}
+		}
+	}
+
+	#Super(c, cargs) {
+		const pLabel =
+			c.message.slice(
+				cargs[0].length +
+				cargs[1].length +
+				cargs[2].length + 3);
+		if (!this.super) {
+			this.super = {
+				branch: cargs[2],
+				label: pLabel ? pLabel : cargs[2]
+			}
+		}
+	}
+
+	constructor(commits, branchInfo) {
+		commits.ForEach(c => {
+			//コミットメッセージをパース
+			const cargs = c.message.split(' ');
+			switch (cargs[0]) {
+				case '.dits':
+					//ditsコマンド
+					switch (cargs[1]) {
+						case 'open':
+							//ブランチの始まり=解析終了(終了する関係で例外的に)
+							if (!this.currentTitle) {
+								this.currentTitle = c.message.slice(11);
+								this.openHash = c.hash;
+							}
+							return;
+						case 'new': //新規服課題
+							this.#NewSubIssue(c, cargs);
+							break;
+						case 'delete': //削除済み副課題
+							this.deleted.push(cargs[2]);
+							break;
+						case 'title': //課題タイトル
+							if (!this.currentTitle) {
+								this.currentTitle = c.message.slice(12);
+							}
+							break;
+						case 'release': //リリース情報
+							this.revision = cargs[2];
+							if (!this.lastRevision) {
+								this.lastRevision = this.revision;
+							}
+							break;
+						case 'parent': //超課題の設定(旧)
+							if (!this.#backwordCompatible) {
+								vscode.window.showErrorMessage(
+									'Command "parent" is no longer used. Enable "Recognize short hash and branchname without #" to enable it.');
+							}
+							break;
+						case 'super': //超課題の設定
+							this.#Super(c, cargs);
+							break;
+						default:
+							vscode.window.showErrorMessage(
+								`Unrecognized dits command: ${c.message}`);
+							break;
+					}
+					break;
+				case 'Merge': //merge=closed
+					this.closedIssue.push({
+						hash: cargs[2].slice(
+							this.backwordCompatible ?
+								cargs[2][1] == '#' ? 2 : 1 : 1, -1),
+						revision: this.revision
+					});
+					break;
+				default: //コマンドではないコミットのコメントはただのコメント
+					this.log.push(c);
+					break;
+			}
+		});
+
+		//closedからラベルがない(=dits管理外)要素を除去
+		var newClosed = [];
+		this.closed.forEach(e => {
+			if (e.label) {
+				newClosed.push(e);
+			}
+		});
+		this.closed = newClosed;
+
+		if (!this.currentTitle) {
+			//カレントISSUEのタイトルがないときはブランチ名を設定しておく
+			this.currentTitle = this.branch;
+		}
+
+	}
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
