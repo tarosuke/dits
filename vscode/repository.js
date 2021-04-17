@@ -49,7 +49,7 @@ class Branch{
 		this.closed = newClosed;
 
 		if (!this.currentTitle) {
-			//カレントISSUEのタイトル代わりにhashを設定しておく
+			//カレントISSUEのタイトルがないときはブランチ名を設定しておく
 			this.currentTitle = this.branch;
 		}
 	}
@@ -57,7 +57,7 @@ class Branch{
 		for (let item of b.split('\n')) {
 			item = item.trim().split(' ');
 			if (item[0] == '*') {
-				//カレントISSUEのhashを取得
+				//現課題のブランチ名を取得
 				this.branch = item[1].trim();
 				this.branches.push(item[1].trim());
 			} else {
@@ -70,9 +70,9 @@ class Branch{
 		const cargs = commit.label.split(' ');
 		switch (cargs[0]) {
 			case '.dits':
-				//コマンド
+				//ditsコマンド
 				switch (cargs[1]) {
-					case 'new': //新規子チケット
+					case 'new': //新規副課題
 						commit.label = commit.label.slice(10);
 						const h = `#${commit.hash}`;
 						if (!this.deleted.find(
@@ -101,10 +101,10 @@ class Branch{
 							this.openHash = commit.hash;
 						}
 						return false;
-					case 'delete': //削除済み子チケット
+					case 'delete': //削除済み副課題
 						this.deleted.push(cargs[2]);
 						break;
-					case 'parent': //superIssueの設定
+					case 'parent': //超課題の設定
 					case 'super':
 						const pLabel =
 							commit.label.slice(
@@ -118,7 +118,7 @@ class Branch{
 							}
 						}
 						break;
-					case 'title': //チケットのタイトル
+					case 'title': //課題タイトル
 						if (!this.currentTitle) {
 							this.currentTitle = commit.label.slice(12);
 						}
@@ -141,7 +141,7 @@ class Branch{
 					revision: this.revision
 				});
 				break;
-			default: //コメント
+			default: //コマンドではないコミットのコメントはただのコメント
 				this.items.push(commit);
 				break;
 		}
@@ -153,6 +153,7 @@ class Branch{
 
 
 exports.Repository = function () {
+	//ワークディレクトリのパスを取得
 	if (vscode.workspace.workspaceFolders) {
 		this.currentPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
 	}
@@ -183,11 +184,13 @@ exports.Repository = function () {
 		this.Do(['commit', '--allow-empty', '-m', message]);
 	}
 
-	//issue情報取得
+	//課題情報取得
 	this.GetIssueInfo = function () {
 		if (!this.currentPath) {
 			return null;
 		}
+
+		//オーナー情報収集
 		owner = null;
 		if (this.branch.openHash) {
 			owner = this.Do([
@@ -196,6 +199,8 @@ exports.Repository = function () {
 				'--pretty=short',
 				this.branch.openHash]).split('\n')[1].slice(8);
 		}
+
+		//進捗率を計算して課題情報をまとめて返る
 		let numChild =
 			this.branch.children.length +
 			this.branch.closed.length;
@@ -207,11 +212,13 @@ exports.Repository = function () {
 			owner: owner
 		};
 	}
+
+	//課題情報一覧を取得
 	this.GetBranch = function () {
 		return this.currentPath ? this.branch.items : [];
 	}
 
-	//子チケット情報取得
+	//副課題情報取得
 	this.GetChildren = function () {
 		return this.currentPath ? this.branch.children : [];
 	}
@@ -219,7 +226,7 @@ exports.Repository = function () {
 		return this.currentPath ?  this.branch.closed : [];
 	}
 
-	//branchの読み込み
+	//Gitのログを取得して現課題オブジェクトを生成
 	this.LoadBranch = function () {
 		if (!this.currentPath) {
 			return;
@@ -240,23 +247,28 @@ exports.Repository = function () {
 		this.branch = new Branch(log, branch);
 	}
 
-	//子チケット追加
+	//副課題追加
 	this.NewChild = async function () {
 
+		//入力欄情報
 		let options = {
 			prompt: "Title: ",
 			placeHolder: "(title the new issue)"
 		}
 
+		//入力欄生成
 		vscode.window.showInputBox(options).then((value) => {
 			if (!value) {
+				//キャンセル
 				return;
 			}
 			value.trim();
 			if (!value.length) {
+				//入力なし
 				return;
 			}
 
+			//コマンド生成
 			this.CommitMessage(`.dits new ${value}`);
 
 			//ブランチ再読込
@@ -264,6 +276,7 @@ exports.Repository = function () {
 		});
 	}
 
+	//副課題を開く
 	this.OpenChild = async function (ticket) {
 		const branchName = `#${ticket.hash}`;
 		const reopen = 0 <= this.branch.branches.indexOf(branchName);
