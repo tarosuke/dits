@@ -16,14 +16,14 @@ class Commit{
 };
 
 class Commits {
-	#commits = [];
-	constructor(commitArray) {
-		this.#commits = commitArray;
+	#commits;
+	constructor() {
+		this.#commits = [];
 	}
 	Add(commit) {
 		this.#commits.push(commit);
 	}
-	FerEach(f) {
+	ForEach(f) {
 		this.#commits.forEach(f);
 	}
 };
@@ -82,7 +82,7 @@ class Git {
 		}
 
 		//パースしてCommitへ変換
-		commits = new Commits;
+		const commits = new Commits();
 		for (var item of log.split('\n')) {
 			if (item.length) {
 				const tokens = item.split(' ');
@@ -97,18 +97,18 @@ class Git {
 
 	//ブランチ情報取得
 	GetBranchInfo() {
-		const b = this.Do(['branch']);
+		const b = this.Do(['branch']).trim();;
 		if (!b) {
 			return; //failed
 		}
 
-		bi = new BranchInfo;
+		var bi = new BranchInfo;
 		for (let item of b.split('\n')) {
 			const i = item.trim().split(' ');
-			if (item[0] === '*') {
-				bi.AddCurrent(item[1].trim());
+			if (i[0] === '*') {
+				bi.AddCurrent(i[1].trim());
 			} else {
-				bi.Add(item[0].trin());
+				bi.Add(i[0].trim());
 			}
 		}
 
@@ -124,17 +124,18 @@ class Issue {
 	#backwordCompatible =
 		vscode.workspace.getConfiguration('dits').get('backwordCompatible');
 
+	#branchInfo;
 	//dits管理外commit
-	log;
+	log = [];
 	//現issue
 	currentTitle;
-	openHash;
+	currentBranch;
 	lastRevision;
 	//状態別issueリスト
-	supeer;
-	sub;
-	closed;
-	deleted;
+	super;
+	sub = [];
+	closed = [];
+	deleted = [];
 
 	//ditsコマンドの解釈
 	#IsMatch(s, l) {
@@ -145,24 +146,27 @@ class Issue {
 
 	#NewSubIssue(c, cargs) {
 		const label = c.message.slice(10);
-		const h = `#${commit.hash}`;
+		const h = `#${c.hash}`;
 		if (!this.deleted.find(
 			e => this.backwordCompatible ?
 				h.indexOf(e) == 0 :
 				e == h)) {
+			//deletedにないので存在するsubIssue
 			const ce = this.closed.find(
 				e => this.backwordCompatible ?
-					commit.hash.indexOf(e.hash) == 0 :
+					c.hash.indexOf(e.hash) == 0 :
 					e.hash == h);
 			if (!ce) {
-				if (this.branches.indexOf(h) < 0) {
-					//ブランチがないので新規フラグ
-					commit.notOpened = true;
+				//closedにないので生きているsubIssue
+				if (this.#branchInfo.list.indexOf(h) < 0) {
+					//ブランチがないのでコミットに新規フラグを追加する
+					c.notOpened = true;
 				}
-				this.children.push(commit);
+				//subIssueリストに追加
+				this.sub.push(c);
 			} else {
-				//エントリにラベルを追加
-				ce.label = commit.label;
+				//closedなのでエントリにラベルを追加
+				ce.message = c.message.slice(10);
 			}
 		}
 	}
@@ -182,6 +186,7 @@ class Issue {
 	}
 
 	constructor(commits, branchInfo) {
+		this.#branchInfo = branchInfo;
 		commits.ForEach(c => {
 			//コミットメッセージをパース
 			const cargs = c.message.split(' ');
@@ -193,7 +198,7 @@ class Issue {
 							//ブランチの始まり=解析終了(終了する関係で例外的に)
 							if (!this.currentTitle) {
 								this.currentTitle = c.message.slice(11);
-								this.openHash = c.hash;
+								this.currentBranch = `#${c.hash}`;
 							}
 							return;
 						case 'new': //新規服課題
@@ -217,8 +222,8 @@ class Issue {
 							if (!this.#backwordCompatible) {
 								vscode.window.showErrorMessage(
 									'Command "parent" is no longer used. Enable "Recognize short hash and branchname without #" to enable it.');
+								break;
 							}
-							break;
 						case 'super': //超課題の設定
 							this.#Super(c, cargs);
 							break;
@@ -229,7 +234,7 @@ class Issue {
 					}
 					break;
 				case 'Merge': //merge=closed
-					this.closedIssue.push({
+					this.closed.push({
 						hash: cargs[2].slice(
 							this.backwordCompatible ?
 								cargs[2][1] == '#' ? 2 : 1 : 1, -1),
@@ -245,7 +250,7 @@ class Issue {
 		//closedからラベルがない(=dits管理外)要素を除去
 		var newClosed = [];
 		this.closed.forEach(e => {
-			if (e.label) {
+			if (e.message) {
 				newClosed.push(e);
 			}
 		});
@@ -253,7 +258,7 @@ class Issue {
 
 		if (!this.currentTitle) {
 			//カレントISSUEのタイトルがないときはブランチ名を設定しておく
-			this.currentTitle = this.branch;
+			this.currentTitle = branchInfo.current;
 		}
 
 	}
@@ -263,6 +268,25 @@ class Issue {
 
 
 exports.DitsRepository = function () {
+	//ワークディレクトリのパスを取得
+	if (vscode.workspace.workspaceFolders) {
+		this.currentPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
+	}
+
+	//workspacesにTreeViewを設定
+	vscode.window.createTreeView('workspaces', {
+		treeDataProvider: new WorkspaceProvider()
+	});
+
+	//リモートの有無を確認
+	// this.isRemotes = 0 < this.Do(['remote']).split('\n').length;
+
+	//Issue読み込み
+	this.git = new Git(this.currentPath);
+	this.issue = new Issue(this.git.GetLog(), this.git.GetBranchInfo());
+
+	vscode.window.showInformationMessage('done');
+
 }
 
 
@@ -290,153 +314,10 @@ exports.DitsRepository = function () {
 
 
 
-class Branch{
-	constructor(log, branch) {
-		this.items = [];
-		this.children = [];
-		this.closed = [];
-		this.deleted = [];
-		this.branches = [];
-		this.backwordCompatible =
-			vscode.workspace.getConfiguration('dits').get('backwordCompatible');
-
-		//ブランチ名一覧を取得
-		this.ParseBranch(branch);
-
-		//ログをパース
-		for (var item of log.split('\n')) {
-			item = item.trim();
-			if (item.length) {
-				const tokens = item.split(' ');
-				const hashLen = tokens[0].length;
-
-				//各コミット分
-				var commit = {
-					hash: tokens[0],
-					label: item.slice(hashLen).trim(),
-					collapsibleState: null
-				};
-
-				if (!this.ParseCommitLabel(commit)) {
-					break;
-				}
-			}
-		}
-
-		//closedからラベルがない要素を除去
-		var newClosed = [];
-		this.closed.forEach(e => {
-			if (e.label) {
-				newClosed.push(e);
-			}
-		});
-		this.closed = newClosed;
-
-		if (!this.currentTitle) {
-			//カレントISSUEのタイトルがないときはブランチ名を設定しておく
-			this.currentTitle = this.branch;
-		}
-	}
-	ParseBranch = function (b) {
-		for (let item of b.split('\n')) {
-			item = item.trim().split(' ');
-			if (item[0] == '*') {
-				//現課題のブランチ名を取得
-				this.branch = item[1].trim();
-				this.branches.push(item[1].trim());
-			} else {
-				this.branches.push(item[0].trim());
-			}
-		}
-	}
-	ParseCommitLabel = function(commit) {
-		//コミットラベルをパース
-		const cargs = commit.label.split(' ');
-		switch (cargs[0]) {
-			case '.dits':
-				//ditsコマンド
-				switch (cargs[1]) {
-					case 'new': //新規副課題
-						commit.label = commit.label.slice(10);
-						const h = `#${commit.hash}`;
-						if (!this.deleted.find(
-							e => this.backwordCompatible ?
-								h.indexOf(e) == 0 :
-								e == h)) {
-							const ce = this.closed.find(
-								e => this.backwordCompatible ?
-									commit.hash.indexOf(e.hash) == 0 :
-									e.hash == h);
-							if (!ce) {
-								if (this.branches.indexOf(h) < 0) {
-									//ブランチがないので新規フラグ
-									commit.notOpened = true;
-								}
-								this.children.push(commit);
-							} else {
-								//エントリにラベルを追加
-								ce.label = commit.label;
-							}
-						}
-						break;
-					case 'open': //ブランチの始まり=解析終了
-						if (!this.currentTitle) {
-							this.currentTitle = commit.label.slice(11);
-							this.openHash = commit.hash;
-						}
-						return false;
-					case 'delete': //削除済み副課題
-						this.deleted.push(cargs[2]);
-						break;
-					case 'parent': //超課題の設定
-					case 'super':
-						const pLabel =
-							commit.label.slice(
-							cargs[0].length +
-							cargs[1].length +
-							cargs[2].length + 3);
-						if (!this.parent) {
-							this.parent = {
-								branch: cargs[2],
-								label: pLabel ? pLabel : cargs[2]
-							}
-						}
-						break;
-					case 'title': //課題タイトル
-						if (!this.currentTitle) {
-							this.currentTitle = commit.label.slice(12);
-						}
-						break;
-					case 'release': //リリース情報
-						this.revision = cargs[2];
-						if (!this.lastRevision) {
-							this.lastRevision = this.revision;
-						}
-						break;
-					default:
-						break;
-				}
-				break;
-			case 'Merge': //merge=closed
-				this.closed.push({
-					hash: cargs[2].slice(
-						this.backwordCompatible ?
-							cargs[2][1] == '#' ? 2 : 1 : 1, -1),
-					revision: this.revision
-				});
-				break;
-			default: //コマンドではないコミットのコメントはただのコメント
-				this.items.push(commit);
-				break;
-		}
-		return true;
-	}
-};
 
 
 
-
-exports.Repository = function () {
+Repository = function () {
 	//ワークディレクトリのパスを取得
 	if (vscode.workspace.workspaceFolders) {
 		this.currentPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
