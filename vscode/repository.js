@@ -24,6 +24,19 @@ class Commits {
 	}
 };
 
+class BranchInfo {
+	current;
+	list = [];
+	constructor() { }
+	Add(name) {
+		this.list.push(name);
+	}
+	AddCurrent(name) {
+		this.list.push(name);
+		this.current = name;
+	}
+};
+
 //Gitアクセス
 class Git {
 	#path;
@@ -78,6 +91,26 @@ class Git {
 
 		return commits;
 	};
+
+	//ブランチ情報取得
+	GetBranchInfo() {
+		const b = this.Do(['branch']);
+		if (!b) {
+			return; //failed
+		}
+
+		bi = new BranchInfo;
+		for (let item of b.split('\n')) {
+			const i = item.trim().split(' ');
+			if (item[0] === '*') {
+				bi.AddCurrent(item[1].trim());
+			} else {
+				bi.Add(item[0].trin());
+			}
+		}
+
+		return bi;
+	}
 };
 
 
