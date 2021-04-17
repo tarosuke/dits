@@ -6,6 +6,95 @@ const fs = require("fs");
 
 
 
+class Commit{
+	constructor(hash, comment) {
+		this.hash = hash;
+		this.comment = comment;
+	};
+};
+
+class Commits {
+	#commits = [];
+	constructor() { };
+	constructor(commitArray) {
+		this.#commits = commitArray;
+	}
+	Add(commit) {
+		this.#commits.push(commit);
+	}
+};
+
+//Gitアクセス
+class Git {
+	#path;
+	constructor(workingPath) {
+		this.#path = workingPath;
+	}
+
+	//Git呼び出し
+	Do(args, supressError = false) {
+		if (!this.#path) {
+			return;
+		}
+		var out = child_process.spawnSync(
+			'git', args, { cwd: this.#path });
+		if (out.status) {
+			if (!supressError) {
+				vscode.window.showErrorMessage(out.stderr.toString());
+			}
+			return;
+		}
+		return out.output.toString().slice(1, -1);
+	};
+
+	//メッセージだけの空コミット
+	CommitEmpty(message) {
+		this.Do(['commit', '--allow-empty', '-m', message]);
+	};
+
+	//現ブランチのログを取得
+	GetLog() {
+		//ログ取得(フルサイズ、一行)
+		const log = this.Do([
+			'log',
+			'--oneline',
+			'--no-decorate',
+			'--first-parent',
+			'--no-abbrev-commit']);
+		if (!log) {
+			return; //failed
+		}
+
+		//パースしてCommitへ変換
+		commits = new Commits;
+		for (var item of log.split('\n')) {
+			if (item.length) {
+				const tokens = item.split(' ');
+				const hashLen = tokens[0].length;
+
+				commits.Add(new Commit(tokens[0], item.slice(hashLen).trim()));
+			}
+		}
+
+		return commits;
+	};
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class Branch{
 	constructor(log, branch) {
 		this.items = [];
