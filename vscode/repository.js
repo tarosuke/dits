@@ -483,6 +483,44 @@ exports.DitsRepository = function () {
 				'The super issue has not specified. Try manually.');
 		}
 	}
+	this.Delete = async function () {
+		if (this.issue.sub.GetLength()) {
+			vscode.window.showErrorMessage(
+				'There are subIssues. First, Delete or Finish them.');
+			return;
+		}
+		if (!this.issue.super) {
+			vscode.window.showErrorMessage(
+				`${this.issue.currentTitle} might not an issue.`);
+			return;
+		}
+		const choice = await vscode.window.showInformationMessage(
+			`delete ${this.issue.currentTitle}?`, 'yes', 'no');
+		if (choice === 'yes') {
+			vscode.window.withProgress({
+				location: vscode.ProgressLocation.Notification,
+				title: 'Deleting issue',
+				cancellable: false
+			}, (progress, token) => {
+				const p = new Promise((resolve, reject) => {
+					progress.report({ increment: 0 });
+					if (this.git.Do(['checkout', this.issue.super.branch])) {
+						this.git.CommitEmpty(
+							`.dits delete ${this.issue.currentBranch}`);
+						this.git.Do(['branch', '-D', this.issue.currentBranch]);
+						this.git.DoR([
+							'push',
+							'origin',
+							`:${this.issue.currentBranch}`]);
+						vscode.commands.executeCommand('dits.refresh');
+					}
+					progress.report({ increment: 100 });
+					resolve();
+				});
+				return p;
+			});
+		}
+	}
 
 
 	/////アクセサ
