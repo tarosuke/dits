@@ -281,15 +281,14 @@ class Issue {
 
 exports.DitsRepository = function () {
 	/////インターフェイス
-
-	this.LoadBranch = function () {
+	this.LoadBranch = function () { //ブランチの読み込み
 		if (!this.currentPath) {
 			return;
 		}
 		this.git = new Git(this.currentPath);
 		this.issue = new Issue(this.git.GetLog(), this.git.GetBranchInfo());
 	}
-	this.Release = function () {
+	this.Release = function () { //リリース
 		if (!this.currentPath) {
 			return;
 		}
@@ -351,6 +350,72 @@ exports.DitsRepository = function () {
 				return p;
 			});
 		});
+	}
+	this.NewChild = async function () { //副課題追加
+		//入力欄情報
+		let options = {
+			prompt: "Title: ",
+			placeHolder: "(title the new issue)"
+		}
+
+		//入力欄生成
+		vscode.window.showInputBox(options).then((value) => {
+			if (!value) {
+				//キャンセル
+				return;
+			}
+			value.trim();
+			if (!value.length) {
+				//入力なし
+				return;
+			}
+
+			//コマンド生成
+			this.git.CommitEmpty(`.dits new ${value}`);
+
+			//ブランチ再読込
+			vscode.commands.executeCommand('dits.refresh');
+		});
+	}
+	this.OpenChild = async function (ticket) { //副課題を開く
+		const branchName = `#${ticket.hash}`;
+		const reopen = 0 <= this.issue.branches.indexOf(branchName);
+		const command = !reopen ?
+			['checkout', '-b', branchName] :
+			['checkout', branchName];
+
+		if (this.git.Do(command)) {
+			if (!reopen) {
+				this.git.CommitEmpty(`.dits open ${ticket.label}`);
+				this.git.CommitEmpty(
+					'.dits super ' +
+					this.issue.currentHash + ' ' +
+					this.issue.currentTitle);
+
+				vscode.window.withProgress({
+					location: vscode.ProgressLocation.Notification,
+					title: 'syncing remote',
+					cancellable: false
+				}, (progress, token) => {
+					progress.report({ increment: 0 });
+
+					const p = new Promise((resolve, reject) => {
+						if (this.isRemotes && !this.git.DoR(['push', '--set-upstream', 'origin', branchName], true)) {
+							vscode.window.showWarningMessage(`Issue ${ticket.label} is already exsits.`);
+							this.git.Do(['checkout', this.branch.branch]);
+							this.git.Do(['branch', '-D', branchName]);
+							this.git.DoR(['fetch']);
+							this.git.DoR(['branch', branchName, `origin/${branchName}`]);
+						}
+						progress.report({ increment: 100 });
+						resolve();
+						vscode.commands.executeCommand('dits.refresh');
+					});
+					return p;
+				})
+			}
+			vscode.commands.executeCommand('dits.refresh');
+		}
 	}
 
 
@@ -463,7 +528,7 @@ Repository = function () {
 	}
 
 	//メッセージだけ空コミット
-	this.CommitMessage = function (message) {
+	this.CommitEmpty = function (message) {
 		this.Do(['commit', '--allow-empty', '-m', message]);
 	}
 
@@ -552,7 +617,7 @@ Repository = function () {
 			}
 
 			//コマンド生成
-			this.CommitMessage(`.dits new ${value}`);
+			this.CommitEmpty(`.dits new ${value}`);
 
 			//ブランチ再読込
 			vscode.commands.executeCommand('dits.refresh');
@@ -569,8 +634,8 @@ Repository = function () {
 
 		if (this.Do(command)) {
 			if (!reopen) {
-				this.CommitMessage(`.dits open ${ticket.label}`);
-				this.CommitMessage(
+				this.CommitEmpty(`.dits open ${ticket.label}`);
+				this.CommitEmpty(
 					'.dits super ' +
 					this.branch.branch + ' ' +
 					this.branch.currentTitle);
@@ -656,7 +721,7 @@ Repository = function () {
 				const p = new Promise((resolve, reject) => {
 					progress.report({ increment: 0 });
 					if (this.Do(['checkout', this.branch.parent.branch])) {
-						this.CommitMessage(`.dits delete ${this.branch.branch}`);
+						this.CommitEmpty(`.dits delete ${this.branch.branch}`);
 						this.Do(['branch', '-D', this.branch.branch]);
 						if (this.isRemotes) {
 							this.Do([
@@ -683,7 +748,7 @@ Repository = function () {
 		const choice = await vscode.window.showInformationMessage(
 			`delete ${v.label}?`, 'yes', 'no');
 		if (choice === 'yes') {
-			this.CommitMessage(`.dits delete #${v.hash}`);
+			this.CommitEmpty(`.dits delete #${v.hash}`);
 			vscode.commands.executeCommand('dits.refresh');
 		}
 	}
@@ -725,7 +790,7 @@ Repository = function () {
 			}
 
 			commitMessage = `.dits release ${value}`;
-			this.CommitMessage(commitMessage);
+			this.CommitEmpty(commitMessage);
 			vscode.commands.executeCommand('dits.refresh');
 
 			var note = '# Release note\n\n';
