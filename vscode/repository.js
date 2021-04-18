@@ -146,7 +146,7 @@ class Issue {
 	log = [];
 	//現issue
 	currentTitle;
-	currentHash;
+	currentBranch;
 	lastRevision;
 	//状態別issueリスト
 	super;
@@ -217,7 +217,7 @@ class Issue {
 							//ブランチの始まり=解析終了(終了する関係で例外的に)
 							if (!this.currentTitle) {
 								this.currentTitle = c.message.slice(11);
-								this.currentHash = c.hash;
+								this.currentBranch = `#${c.hash}`;
 							};
 							return;
 						case 'new': //新規服課題
@@ -255,7 +255,7 @@ class Issue {
 				case 'Merge': //merge=closed
 					this.closed.push({
 						hash: cargs[2].slice(
-							this.backwordCompatible ?
+							this.#backwordCompatible ?
 								cargs[2][1] == '#' ? 2 : 1 : 1, -1),
 						revision: this.revision
 					});
@@ -278,7 +278,7 @@ class Issue {
 
 		if (!this.currentTitle) {
 			//カレントISSUEのタイトルがないときはブランチ名を設定しておく
-			this.currentTitle = branchInfo.current;
+			this.currentTitle = this.currentBranch = branchInfo.current;
 		}
 
 	}
@@ -408,12 +408,17 @@ exports.DitsRepository = function () {
 					progress.report({ increment: 0 });
 
 					const p = new Promise((resolve, reject) => {
-						if (this.isRemotes && !this.git.DoR(['push', '--set-upstream', 'origin', branchName], true)) {
+						if (!this.git.DoR(['push', '--set-upstream', 'origin', branchName], true)) {
 							vscode.window.showWarningMessage(`Issue ${ticket.label} is already exsits.`);
-							this.git.Do(['checkout', this.branch.branch]);
+							this.git.Do([
+								'checkout',
+								`#${this.issue.currentHash}`]);
 							this.git.Do(['branch', '-D', branchName]);
 							this.git.DoR(['fetch']);
-							this.git.DoR(['branch', branchName, `origin/${branchName}`]);
+							this.git.DoR([
+								'branch',
+								branchName,
+								`origin/${branchName}`]);
 						}
 						progress.report({ increment: 100 });
 						resolve();
@@ -445,7 +450,7 @@ exports.DitsRepository = function () {
 			'log',
 			'--no-walk',
 			'--pretty=short',
-			this.issue.currentHash]).split('\n')[1].slice(8);
+			this.issue.currentBranch]).split('\n')[1].slice(8);
 
 		//データ生成
 		return {
