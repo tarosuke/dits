@@ -76,7 +76,7 @@ class Git {
 	};
 	DoR(args, supressError = false) {
 		if (this.#isRemote) {
-			this.Do(args, supressError);
+			return this.Do(args, supressError);
 		}
 	}
 
