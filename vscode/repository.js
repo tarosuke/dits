@@ -473,6 +473,16 @@ exports.DitsRepository = function () {
 				'The super issue has not specified. Try manually.');
 		}
 	}
+	this.GoParent = function () {
+		if (this.issue.super) {
+			if (this.git.Do(['checkout', this.issue.super.branch])) {
+				vscode.commands.executeCommand('dits.refresh');
+			}
+		} else {
+			vscode.window.showErrorMessage(
+				'The super issue has not specified. Try manually.');
+		}
+	}
 
 
 	/////アクセサ
