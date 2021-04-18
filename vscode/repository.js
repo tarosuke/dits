@@ -29,6 +29,9 @@ class Commits {
 	ForEach(f) {
 		this.#list.forEach(f);
 	}
+	GetLength() {
+		return this.#list.length;
+	}
 	FindByBranchName(name) {
 		this.#list.find(i => {
 			return `#${i.hash}` === name;
@@ -408,12 +411,21 @@ exports.DitsRepository = function () {
 					progress.report({ increment: 0 });
 
 					const p = new Promise((resolve, reject) => {
-						if (!this.git.DoR(['push', '--set-upstream', 'origin', branchName], true)) {
-							vscode.window.showWarningMessage(`Issue ${ticket.label} is already exsits.`);
+						if (!this.git.DoR([
+							'push',
+							'--set-upstream',
+							'origin',
+							branchName],
+							true)) {
+							vscode.window.showWarningMessage(
+								`Issue ${ticket.label} is already exsits.`);
 							this.git.Do([
 								'checkout',
-								`#${this.issue.currentHash}`]);
-							this.git.Do(['branch', '-D', branchName]);
+								this.issue.currentBranch]);
+							this.git.Do([
+								'branch',
+								'-D',
+								branchName]);
 							this.git.DoR(['fetch']);
 							this.git.DoR([
 								'branch',
@@ -442,7 +454,7 @@ exports.DitsRepository = function () {
 	this.GetIssueInfo = function () {
 		//進捗率計算
 		const numSub =
-			this.issue.sub.length +
+			this.issue.sub.GetLength() +
 			this.issue.closed.length;
 
 		//owner取得
