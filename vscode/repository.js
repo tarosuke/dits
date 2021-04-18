@@ -33,9 +33,7 @@ class Commits {
 		return this.#list.length;
 	}
 	FindByBranchName(name) {
-		this.#list.find(i => {
-			return `#${i.hash}` === name;
-		});
+		return this.#list.find(i => name == `#${i.hash}`);
 	}
 };
 
@@ -151,6 +149,7 @@ class Issue {
 	currentTitle;
 	currentBranch;
 	lastRevision;
+	ownerCommit;
 	//状態別issueリスト
 	super;
 	sub = new Commits;
@@ -207,6 +206,19 @@ class Issue {
 		}
 	}
 
+	#SetOwner(commit) {
+		if (!this.ownerCommit) {
+			this.ownerCommit = commit.hash;
+		}
+	}
+
+	#SetTitle(commit) {
+		if (!this.currentTitle) {
+			this.currentTitle = commit.message.slice(11);
+			this.currentBranch = `#${commit.hash}`;
+		};
+	}
+
 	constructor(commits, branchInfo) {
 		this.#branchInfo = branchInfo;
 		commits.ForEach(c => {
@@ -217,12 +229,9 @@ class Issue {
 					//ditsコマンド
 					switch (cargs[1]) {
 						case 'open':
-							//ブランチの始まり=解析終了(終了する関係で例外的に)
-							if (!this.currentTitle) {
-								this.currentTitle = c.message.slice(11);
-								this.currentBranch = `#${c.hash}`;
-							};
-							return;
+							this.#SetTitle(c);
+							this.#SetOwner(c);
+							return; //ブランチの始まり=解析終了なのでreturn
 						case 'new': //新規服課題
 							this.#NewSubIssue(c, cargs);
 							break;
@@ -458,11 +467,14 @@ exports.DitsRepository = function () {
 			this.issue.closed.length;
 
 		//owner取得
-		const owner = this.git.Do([
-			'log',
-			'--no-walk',
-			'--pretty=short',
-			this.issue.currentBranch]).split('\n')[1].slice(8);
+		owner = null;
+		if (this.issue.ownerCommit) {
+			owner = this.git.Do([
+				'log',
+				'--no-walk',
+				'--pretty=short',
+				this.issue.ownerCommit]).split('\n')[1].slice(8);
+		}
 
 		//データ生成
 		return {
