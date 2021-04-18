@@ -325,7 +325,7 @@ exports.DitsRepository = function () {
 
 			var note = '# Release note\n\n';
 			var r = null;
-			this.issue.closed.ForEach(e => {
+			this.issue.closed.forEach(e => {
 				if (r != e.revision) {
 					r = e.revision;
 					note += `## ${r}\n`;
@@ -333,8 +333,8 @@ exports.DitsRepository = function () {
 				note += `* ${e.label}\n`;
 			});
 			fs.writeFileSync(`${this.currentPath}/RELEASE.md`, note, 'utf8');
-			this.Do(['add', 'RELEASE.md']);
-			this.Do(['commit', '--amend', `-m ${commitMessage}`]);
+			this.git.Do(['add', 'RELEASE.md']);
+			this.git.Do(['commit', '--amend', `-m ${commitMessage}`]);
 
 			vscode.window.withProgress({
 				location: vscode.ProgressLocation.Notification,
@@ -343,8 +343,8 @@ exports.DitsRepository = function () {
 			}, (progress, token) => {
 				const p = new Promise((resolve, reject) => {
 					progress.report({ increment: 0 });
-					this.Do(['tag', value]);
-					this.DoR(['push', '--tags']);
+					this.git.Do(['tag', value]);
+					this.git.DoR(['push', '--tags']);
 					progress.report({ increment: 100 });
 					resolve();
 				});
