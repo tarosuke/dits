@@ -215,15 +215,9 @@ class Issue {
 		}
 	}
 
-	#SetTitle(commit) {
-		if (!this.currentTitle) {
-			this.currentTitle = commit.message.slice(11);
-			this.currentBranch = `#${commit.hash}`;
-		};
-	}
-
 	constructor(commits, branchInfo) {
 		this.#branchInfo = branchInfo;
+		this.currentBranch = branchInfo.current;
 		commits.ForEach(c => {
 			//コミットメッセージをパース
 			const cargs = c.message.split(' ');
@@ -232,7 +226,9 @@ class Issue {
 					//ditsコマンド
 					switch (cargs[1]) {
 						case 'open':
-							this.#SetTitle(c);
+							if (!this.currentTitle) {
+								this.currentTitle = c.message.slice(11);
+							};
 							this.#SetOwner(c);
 							return true;
 						case 'new': //新規服課題
@@ -295,7 +291,6 @@ class Issue {
 			//カレントISSUEのタイトルがないときはブランチ名を設定しておく
 			this.currentTitle = this.currentBranch = branchInfo.current;
 		}
-
 	}
 };
 
@@ -412,7 +407,9 @@ exports.DitsRepository = function () {
 				this.git.CommitEmpty(`.dits open ${ticket.label}`);
 				this.git.CommitEmpty(
 					'.dits super ' +
-					this.issue.currentHash + ' ' +
+						(this.issue.currentHash ?
+							this.issue.currentHash :
+							this.issue.currentTitle) + ' ' +
 					this.issue.currentTitle);
 
 				vscode.window.withProgress({
