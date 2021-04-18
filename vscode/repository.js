@@ -27,7 +27,7 @@ class Commits {
 		this.#list.push(commit);
 	}
 	ForEach(f) {
-		this.#list.forEach(f);
+		this.#list.find(f);
 	}
 	GetLength() {
 		return this.#list.length;
@@ -46,6 +46,9 @@ class BranchInfo {
 	AddCurrent(name) {
 		this.list.push(name);
 		this.current = name;
+	}
+	IsIn(name) {
+		return this.list.find(e => name === e);
 	}
 };
 
@@ -212,15 +215,9 @@ class Issue {
 		}
 	}
 
-	#SetTitle(commit) {
-		if (!this.currentTitle) {
-			this.currentTitle = commit.message.slice(11);
-			this.currentBranch = `#${commit.hash}`;
-		};
-	}
-
 	constructor(commits, branchInfo) {
 		this.#branchInfo = branchInfo;
+		this.currentBranch = branchInfo.current;
 		commits.ForEach(c => {
 			//コミットメッセージをパース
 			const cargs = c.message.split(' ');
@@ -229,9 +226,11 @@ class Issue {
 					//ditsコマンド
 					switch (cargs[1]) {
 						case 'open':
-							this.#SetTitle(c);
+							if (!this.currentTitle) {
+								this.currentTitle = c.message.slice(11);
+							};
 							this.#SetOwner(c);
-							return; //ブランチの始まり=解析終了なのでreturn
+							return true;
 						case 'new': //新規服課題
 							this.#NewSubIssue(c, cargs);
 							break;
@@ -292,7 +291,6 @@ class Issue {
 			//カレントISSUEのタイトルがないときはブランチ名を設定しておく
 			this.currentTitle = this.currentBranch = branchInfo.current;
 		}
-
 	}
 };
 
@@ -399,7 +397,7 @@ exports.DitsRepository = function () {
 	}
 	this.OpenChild = async function (ticket) { //副課題を開く
 		const branchName = `#${ticket.hash}`;
-		const reopen = !!this.issue.sub.FindByBranchName(branchName);
+		const reopen = this.git.GetBranchInfo().IsIn(branchName);
 		const command = !reopen ?
 			['checkout', '-b', branchName] :
 			['checkout', branchName];
@@ -409,7 +407,9 @@ exports.DitsRepository = function () {
 				this.git.CommitEmpty(`.dits open ${ticket.label}`);
 				this.git.CommitEmpty(
 					'.dits super ' +
-					this.issue.currentHash + ' ' +
+						(this.issue.currentHash ?
+							this.issue.currentHash :
+							this.issue.currentTitle) + ' ' +
 					this.issue.currentTitle);
 
 				vscode.window.withProgress({
@@ -448,7 +448,29 @@ exports.DitsRepository = function () {
 					return p;
 				})
 			}
-			vscode.commands.executeCommand('dits.refresh');
+		}
+		vscode.commands.executeCommand('dits.refresh');
+	}
+	this.Finish = function () {
+		if (this.issue.sub.GetLength()) {
+			vscode.window.showErrorMessage(
+				'There are subIssues. First, Delete or Finish them.');
+			return;
+		}
+		if (this.issue.super) {
+			if (this.git.Do(['checkout', this.issue.super.branch]) &&
+				this.git.Do(['merge', '--no-ff', this.issue.currentBranch]) &&
+				this.git.Do(['branch', '-D', this.issue.currentBranch]) &&
+				this.git.DoR([
+					'push', 'origin', `:${this.issue.currentBranch}`])) {
+				vscode.commands.executeCommand('dits.refresh');
+			} else {
+				vscode.window.showErrorMessage(
+					'Failed some operations. Try manually.');
+			}
+		} else {
+			vscode.window.showErrorMessage(
+				'The super issue has not specified. Try manually.');
 		}
 	}
 
@@ -503,8 +525,6 @@ exports.DitsRepository = function () {
 
 	//Issue読み込み
 	this.LoadBranch();
-
-	vscode.window.showInformationMessage('done');
 
 
 }
