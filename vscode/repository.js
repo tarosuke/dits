@@ -16,15 +16,23 @@ class Commit{
 };
 
 class Commits {
-	#commits;
+	#list;
 	constructor() {
-		this.#commits = [];
+		this.#list = [];
+	}
+	GetList() {
+		return this.#list;
 	}
 	Add(commit) {
-		this.#commits.push(commit);
+		this.#list.push(commit);
 	}
 	ForEach(f) {
-		this.#commits.forEach(f);
+		this.#list.forEach(f);
+	}
+	FindByBranchName(name) {
+		this.#list.find(i => {
+			return `#${i.hash}` === name;
+		});
 	}
 };
 
@@ -142,7 +150,7 @@ class Issue {
 	lastRevision;
 	//状態別issueリスト
 	super;
-	sub = [];
+	sub = new Commits;
 	closed = [];
 	deleted = [];
 
@@ -174,7 +182,7 @@ class Issue {
 				//表示用データ追加
 				c.label = label;
 				//subIssueリストに追加
-				this.sub.push(c);
+				this.sub.Add(c);
 			} else {
 				//closedなのでエントリにラベルを追加
 				ce.label = c.message.slice(10);
@@ -379,7 +387,7 @@ exports.DitsRepository = function () {
 	}
 	this.OpenChild = async function (ticket) { //副課題を開く
 		const branchName = `#${ticket.hash}`;
-		const reopen = 0 <= this.issue.branches.indexOf(branchName);
+		const reopen = !!this.issue.branches.indexOf(branchName);
 		const command = !reopen ?
 			['checkout', '-b', branchName] :
 			['checkout', branchName];
@@ -421,7 +429,7 @@ exports.DitsRepository = function () {
 
 	/////アクセサ
 	this.GetSub = function () {
-		return this.issue.sub;
+		return this.issue.sub.GetList();
 	}
 	this.GetLog = function () {
 		return this.issue.log;
