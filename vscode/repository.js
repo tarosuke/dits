@@ -138,7 +138,7 @@ class Issue {
 	log = [];
 	//現issue
 	currentTitle;
-	currentBranch;
+	currentHash;
 	lastRevision;
 	//状態別issueリスト
 	super;
@@ -209,8 +209,8 @@ class Issue {
 							//ブランチの始まり=解析終了(終了する関係で例外的に)
 							if (!this.currentTitle) {
 								this.currentTitle = c.message.slice(11);
-								this.currentBranch = `#${c.hash}`;
-							}
+								this.currentHash = c.hash;
+							};
 							return;
 						case 'new': //新規服課題
 							this.#NewSubIssue(c, cargs);
@@ -367,11 +367,18 @@ exports.DitsRepository = function () {
 			this.issue.sub.length +
 			this.issue.closed.length;
 
+		//owner取得
+		const owner = this.git.Do([
+			'log',
+			'--no-walk',
+			'--pretty=short',
+			this.issue.currentHash]).split('\n')[1].slice(8);
+
 		//データ生成
 		return {
 			title: this.issue.currentTitle,
 			progress: !numSub ? 0 : this.issue.closed.length / numSub,
-			//omtec
+			owner: owner,
 			super: this.issue.super
 		};
 	}
