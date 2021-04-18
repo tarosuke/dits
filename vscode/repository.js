@@ -43,8 +43,12 @@ class BranchInfo {
 //Gitアクセス
 class Git {
 	#path;
+	#isRemote;
 	constructor(workingPath) {
 		this.#path = workingPath;
+
+		//リモートの有無を確認
+		this.#isRemote = 0 < this.Do(['remote']).split('\n').length;
 	}
 
 	//Git呼び出し
@@ -62,6 +66,11 @@ class Git {
 		}
 		return out.output.toString().slice(1, -1);
 	};
+	DoR(args, supressError = false) {
+		if (this.#isRemote) {
+			this.Do(args, supressError);
+		}
+	}
 
 	//メッセージだけの空コミット
 	CommitEmpty(message) {
@@ -162,11 +171,13 @@ class Issue {
 					//ブランチがないのでコミットに新規フラグを追加する
 					c.notOpened = true;
 				}
+				//表示用データ追加
+				c.label = label;
 				//subIssueリストに追加
 				this.sub.push(c);
 			} else {
 				//closedなのでエントリにラベルを追加
-				ce.message = c.message.slice(10);
+				ce.label = c.message.slice(10);
 			}
 		}
 	}
@@ -242,6 +253,7 @@ class Issue {
 					});
 					break;
 				default: //コマンドではないコミットのコメントはただのコメント
+					c.label = c.message;
 					this.log.push(c);
 					break;
 			}
@@ -250,7 +262,7 @@ class Issue {
 		//closedからラベルがない(=dits管理外)要素を除去
 		var newClosed = [];
 		this.closed.forEach(e => {
-			if (e.message) {
+			if (e.label) {
 				newClosed.push(e);
 			}
 		});
@@ -268,6 +280,102 @@ class Issue {
 
 
 exports.DitsRepository = function () {
+	/////インターフェイス
+
+	this.LoadBranch = function () {
+		if (!this.currentPath) {
+			return;
+		}
+		this.git = new Git(this.currentPath);
+		this.issue = new Issue(this.git.GetLog(), this.git.GetBranchInfo());
+	}
+	this.Release = function () {
+		if (!this.currentPath) {
+			return;
+		}
+
+		//仮リビジョン計算
+		rev = this.issue.lastRevision;
+		if (rev) {
+			revs = rev.split('.');
+			revs[2] = parseInt(revs[2]) + 1;
+			rev = `${revs[0]}.${revs[1]}.${revs[2]}`;
+		} else {
+			rev = '0.0.0';
+		}
+
+		let options = {
+			prompt: "Revision: ",
+			placeHolder: "(revision to release)",
+			value: rev
+		}
+
+		vscode.window.showInputBox(options).then((value) => {
+			if (!value) {
+				return;
+			}
+			value.trim();
+			if (!value.length) {
+				return;
+			}
+
+			commitMessage = `.dits release ${value}`;
+			this.git.CommitEmpty(commitMessage);
+			vscode.commands.executeCommand('dits.refresh');
+
+			var note = '# Release note\n\n';
+			var r = null;
+			this.issue.closed.ForEach(e => {
+				if (r != e.revision) {
+					r = e.revision;
+					note += `## ${r}\n`;
+				}
+				note += `* ${e.label}\n`;
+			});
+			fs.writeFileSync(`${this.currentPath}/RELEASE.md`, note, 'utf8');
+			this.Do(['add', 'RELEASE.md']);
+			this.Do(['commit', '--amend', `-m ${commitMessage}`]);
+
+			vscode.window.withProgress({
+				location: vscode.ProgressLocation.Notification,
+				title: 'Generating release tag...',
+				cancellable: false
+			}, (progress, token) => {
+				const p = new Promise((resolve, reject) => {
+					progress.report({ increment: 0 });
+					this.Do(['tag', value]);
+					this.DoR(['push', '--tags']);
+					progress.report({ increment: 100 });
+					resolve();
+				});
+				return p;
+			});
+		});
+	}
+
+
+	/////アクセサ
+	this.GetSub = function () {
+		return this.issue.sub;
+	}
+	this.GetLog = function () {
+		return this.issue.log;
+	}
+	this.GetIssueInfo = function () {
+		return {
+			title: this.issue.currentTitle,
+			progress: 0,
+			//omtec
+			super: this.issue.super
+		};
+	}
+	this.GetClosedSub = function () {
+		return this.issue.closed;
+	}
+
+
+	/////初期化
+
 	//ワークディレクトリのパスを取得
 	if (vscode.workspace.workspaceFolders) {
 		this.currentPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
@@ -278,14 +386,11 @@ exports.DitsRepository = function () {
 		treeDataProvider: new WorkspaceProvider()
 	});
 
-	//リモートの有無を確認
-	// this.isRemotes = 0 < this.Do(['remote']).split('\n').length;
-
 	//Issue読み込み
-	this.git = new Git(this.currentPath);
-	this.issue = new Issue(this.git.GetLog(), this.git.GetBranchInfo());
+	this.LoadBranch();
 
 	vscode.window.showInformationMessage('done');
+
 
 }
 

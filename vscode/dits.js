@@ -120,7 +120,7 @@ class IssueProvider {
 		const progress = issue.progress * 100;
 		if (0 <= progress) {
 			t.push({
-				label: `(${progress.toFixed(1)}%) ${issue.issue}`,
+				label: `(${progress.toFixed(1)}%) ${issue.title}`,
 				iconPath: new vscode.ThemeIcon('issue-opened')
 			});
 		}
@@ -130,12 +130,12 @@ class IssueProvider {
 				iconPath: new vscode.ThemeIcon('account')
 			});
 		}
-		if (issue.parent) {
+		if (issue.super) {
 			t.push({
-				label: `${issue.parent}`,
+				label: `${issue.super.label}`,
 				command: { command: 'dits.goParent' },
+				arguments: [ issue.super ],
 				iconPath: new vscode.ThemeIcon('fold-up')
-
 			});
 		}
 		return t;
@@ -144,51 +144,50 @@ class IssueProvider {
 
 class LogTreeviewProvider {
 	constructor(r) {
-		this.branch = r.GetBranch();
+		this.sub = r.GetLog();
 	}
-	getTreeItem(v) {
+	getTreeItem(c) {
 		return {
-			label: v,
-			collapsibleState: v.collapsibleState, //ブランチノードのときは設定する
+			label: c.label,
 		};
 	}
-	getChildren(v) {
-		return this.branch;
+	getChildren() {
+		return this.sub;
 	}
 }
 
 class ChildrenTreeviewProvider {
 	constructor(r) {
-		this.children = r.GetChildren();
+		this.sub = r.GetSub();
 	}
-	getTreeItem(v) {
+	getTreeItem(c) {
 		return {
 			label: {
-				label: v.label,
-				highlights: [[0, v.notOpened ? v.label.length : 0]]
+				label: c.label,
+				highlights: [[0, c.notOpened ? c.label.length : 0]]
 			},
-			hash: v.hash,
+			hash: c.hash,
 			command: {
 				command: 'dits.openChild',
-				arguments: [ v ]
+				arguments: [ c ]
 			}
 		};
 	}
-	getChildren(v) {
-		return this.children;
+	getChildren() {
+		return this.sub;
 	}
 }
 class ClosedChildrenTreeviewProvider {
 	constructor(r) {
-		this.closedChildren = r.GetClosedChildren();
+		this.closed = r.GetClosedSub();
 	}
-	getTreeItem(v) {
+	getTreeItem(c) {
 		return {
-			label: v,
+			label: c.label
 		};
 	}
 	getChildren(v) {
-		return this.closedChildren;
+		return this.closed;
 	}
 }
 
