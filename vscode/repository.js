@@ -387,7 +387,7 @@ exports.DitsRepository = function () {
 	}
 	this.OpenChild = async function (ticket) { //副課題を開く
 		const branchName = `#${ticket.hash}`;
-		const reopen = !!this.issue.branches.indexOf(branchName);
+		const reopen = !!this.issue.sub.FindByBranchName(branchName);
 		const command = !reopen ?
 			['checkout', '-b', branchName] :
 			['checkout', branchName];
