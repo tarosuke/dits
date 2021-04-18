@@ -362,9 +362,15 @@ exports.DitsRepository = function () {
 		return this.issue.log;
 	}
 	this.GetIssueInfo = function () {
+		//進捗率計算
+		const numSub =
+			this.issue.sub.length +
+			this.issue.closed.length;
+
+		//データ生成
 		return {
 			title: this.issue.currentTitle,
-			progress: 0,
+			progress: !numSub ? 0 : this.issue.closed.length / numSub,
 			//omtec
 			super: this.issue.super
 		};
