@@ -9,6 +9,13 @@ const fs = require("fs");
 var backwordCompatible = false;
 
 
+//ハッシュ／ブランチ比較
+function IsSame(a, b) {
+	return backwordCompatible ?
+		a.length < b.length ? b.indexOf(a) : a.indexOf(b) : a === b;
+};
+
+
 //コミット
 class Commit{
 	hash;
@@ -162,12 +169,6 @@ class Issue {
 	deleted = [];
 
 	//ditsコマンドの解釈
-	#IsMatch(s, l) {
-		return this.backwordCompatible ?
-			longHash.indexOf(shortHash) == 0 :
-			shortHash == longHash;
-	}
-
 	#NewSubIssue(c, cargs) {
 		const label = c.message.slice(10);
 		const h = `#${c.hash}`;
