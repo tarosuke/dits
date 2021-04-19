@@ -133,7 +133,7 @@
 				"dits.backwordCompatible":{
 					"type": "boolean",
 					"default" : false,
-					"description": "Recognize short hash and branchname without #"
+					"description": "Recognize short hash and branchname without # and default Merge commit, parent command"
 				}
 			}
 		}
