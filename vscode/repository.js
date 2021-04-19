@@ -12,7 +12,7 @@ var backwordCompatible = false;
 //ハッシュ／ブランチ比較
 function IsSame(a, b) {
 	return backwordCompatible ?
-		a.length < b.length ? b.indexOf(a) : a.indexOf(b) : a === b;
+		a.length < b.length ? !b.indexOf(a) : !a.indexOf(b) : a === b;
 };
 
 
