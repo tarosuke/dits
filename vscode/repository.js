@@ -5,7 +5,11 @@ const child_process = require('child_process');
 const fs = require("fs");
 
 
+//後方互換性設定
+var backwordCompatible = false;
 
+
+//コミット
 class Commit{
 	hash;
 	message;
@@ -15,6 +19,7 @@ class Commit{
 	};
 };
 
+//コミットのリスト
 class Commits {
 	#list;
 	constructor() {
@@ -37,6 +42,7 @@ class Commits {
 	}
 };
 
+//ブランチ情報
 class BranchInfo {
 	current;
 	list = [];
@@ -141,10 +147,6 @@ class Git {
 
 //issue関連
 class Issue {
-	//後方互換性設定
-	#backwordCompatible =
-		vscode.workspace.getConfiguration('dits').get('backwordCompatible');
-
 	#branchInfo;
 	//dits管理外commit
 	log = [];
@@ -170,12 +172,12 @@ class Issue {
 		const label = c.message.slice(10);
 		const h = `#${c.hash}`;
 		if (!this.deleted.find(
-			e => this.backwordCompatible ?
+			e => backwordCompatible ?
 				h.indexOf(e) == 0 :
 				e == h)) {
 			//deletedにないので存在するsubIssue
 			const ce = this.closed.find(
-				e => this.backwordCompatible ?
+				e => backwordCompatible ?
 					c.hash.indexOf(e.hash) == 0 :
 					e.hash == h);
 			if (!ce) {
@@ -216,6 +218,10 @@ class Issue {
 	}
 
 	constructor(commits, branchInfo) {
+		//設定の読み込み
+		backwordCompatible =
+			vscode.workspace.getConfiguration('dits').get('backwordCompatible');
+
 		this.#branchInfo = branchInfo;
 		this.currentBranch = branchInfo.current;
 		commits.ForEach(c => {
@@ -249,7 +255,7 @@ class Issue {
 							}
 							break;
 						case 'parent': //超課題の設定(旧)
-							if (!this.#backwordCompatible) {
+							if (!backwordCompatible) {
 								vscode.window.showErrorMessage(
 									'Command "parent" is no longer used. Enable "Recognize short hash and branchname without #" to enable it.');
 								break;
@@ -266,7 +272,7 @@ class Issue {
 				case 'Merge': //merge=closed
 					this.closed.push({
 						hash: cargs[2].slice(
-							this.#backwordCompatible ?
+							backwordCompatible ?
 								cargs[2][1] == '#' ? 2 : 1 : 1, -1),
 						revision: this.revision
 					});
