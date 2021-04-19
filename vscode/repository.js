@@ -174,7 +174,7 @@ class Issue {
 		const h = `#${c.hash}`;
 		if (!this.deleted.find(e => IsSame(e, h))) {
 			//deletedにないので存在するsubIssue
-			const ce = this.closed.find(e => IsSame(e.hash, h));
+			const ce = this.closed.find(e => IsSame(e.hash, c.hash));
 			if (!ce) {
 				//closedにないので生きているsubIssue
 				if (this.#branchInfo.list.indexOf(h) < 0) {
