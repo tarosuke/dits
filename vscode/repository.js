@@ -214,9 +214,7 @@ class Issue {
 
 	#Finish(cargs) {
 		this.closed.push({
-			hash: cargs[2].slice(
-				backwordCompatible ?
-					cargs[2][1] == '#' ? 2 : 1 : 1, -1),
+			hash: cargs[2].replace(/(\'|#)/g, ''),
 			revision: this.revision
 		});
 	}
