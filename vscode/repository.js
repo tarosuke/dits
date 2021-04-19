@@ -12,7 +12,7 @@ var backwordCompatible = false;
 //ハッシュ／ブランチ比較
 function IsSame(a, b) {
 	return backwordCompatible ?
-		a.length < b.length ? b.indexOf(a) : a.indexOf(b) : a === b;
+		a.length < b.length ? !b.indexOf(a) : !a.indexOf(b) : a === b;
 };
 
 
@@ -61,7 +61,7 @@ class BranchInfo {
 		this.current = name;
 	}
 	IsIn(name) {
-		return this.list.find(e => name === e);
+		return this.list.find(e => IsSame(name, e));
 	}
 };
 
@@ -172,15 +172,9 @@ class Issue {
 	#NewSubIssue(c, cargs) {
 		const label = c.message.slice(10);
 		const h = `#${c.hash}`;
-		if (!this.deleted.find(
-			e => backwordCompatible ?
-				h.indexOf(e) == 0 :
-				e == h)) {
+		if (!this.deleted.find(e => IsSame(e, h))) {
 			//deletedにないので存在するsubIssue
-			const ce = this.closed.find(
-				e => backwordCompatible ?
-					c.hash.indexOf(e.hash) == 0 :
-					e.hash == h);
+			const ce = this.closed.find(e => IsSame(e.hash, c.hash));
 			if (!ce) {
 				//closedにないので生きているsubIssue
 				if (this.#branchInfo.list.indexOf(h) < 0) {
@@ -414,9 +408,7 @@ exports.DitsRepository = function () {
 				this.git.CommitEmpty(`.dits open ${ticket.label}`);
 				this.git.CommitEmpty(
 					'.dits super ' +
-						(this.issue.currentHash ?
-							this.issue.currentHash :
-							this.issue.currentTitle) + ' ' +
+					this.issue.currentBranch + ' ' +
 					this.issue.currentTitle);
 
 				vscode.window.withProgress({
