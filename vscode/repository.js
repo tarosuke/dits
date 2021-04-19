@@ -212,6 +212,15 @@ class Issue {
 		}
 	}
 
+	#Finish(cargs) {
+		this.closed.push({
+			hash: cargs[2].slice(
+				backwordCompatible ?
+					cargs[2][1] == '#' ? 2 : 1 : 1, -1),
+			revision: this.revision
+		});
+	}
+
 	constructor(commits, branchInfo) {
 		//設定の読み込み
 		backwordCompatible =
@@ -258,19 +267,19 @@ class Issue {
 						case 'super': //超課題の設定
 							this.#Super(c, cargs);
 							break;
+						case 'finish': //課題完了
+							this.#Finish(cargs);
+							break;
 						default:
 							vscode.window.showErrorMessage(
 								`Unrecognized dits command: ${c.message}`);
 							break;
 					}
 					break;
-				case 'Merge': //merge=closed
-					this.closed.push({
-						hash: cargs[2].slice(
-							backwordCompatible ?
-								cargs[2][1] == '#' ? 2 : 1 : 1, -1),
-						revision: this.revision
-					});
+				case 'Merge': //merge=finish
+					if (backwordCompatible) {
+						this.#Finish(cargs);
+					}
 					break;
 				default: //コマンドではないコミットのコメントはただのコメント
 					c.label = c.message;
@@ -458,7 +467,12 @@ exports.DitsRepository = function () {
 		}
 		if (this.issue.super) {
 			if (this.git.Do(['checkout', this.issue.super.branch]) &&
-				this.git.Do(['merge', '--no-ff', this.issue.currentBranch]) &&
+				this.git.Do([
+					'merge',
+					'--no-ff',
+					'-m',
+					`.dits finish ${this.issue.currentBranch}`,
+					this.issue.currentBranch]) &&
 				this.git.Do(['branch', '-D', this.issue.currentBranch]) &&
 				this.git.DoR([
 					'push', 'origin', `:${this.issue.currentBranch}`])) {
