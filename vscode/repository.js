@@ -595,3 +595,27 @@ exports.DitsRepository = function () {
 	//Issue読み込み
 	this.LoadBranch();
 }
+
+class WorkspaceProvider {
+	constructor() {
+		this.list = [];
+		if (vscode.workspace.workspaceFolders) {
+			vscode.workspace.workspaceFolders.forEach(element => {
+				this.list.push({
+					label: element.name,
+					path: element.uri.fsPath,
+					command: {
+						command: 'dits.chdir',
+						arguments: [element.uri.fsPath]
+					}
+				});
+			});
+		}
+	}
+	getTreeItem(v) {
+		return v;
+	}
+	getChildren(v) {
+		return this.list;
+	}
+}
