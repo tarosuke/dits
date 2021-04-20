@@ -563,11 +563,6 @@ exports.DitsRepository = function () {
 		return this.issue.log;
 	}
 	this.GetIssueInfo = function () {
-		//進捗率計算
-		const numSub =
-			this.issue.sub.GetLength() +
-			this.issue.closed.length;
-
 		//owner取得
 		owner = null;
 		if (this.issue.ownerCommit) {
@@ -581,7 +576,10 @@ exports.DitsRepository = function () {
 		//データ生成
 		return {
 			title: this.issue.currentTitle,
-			progress: !numSub ? 0 : this.issue.closed.length / numSub,
+			progress: {
+				open: this.issue.sub.GetLength(),
+				closed: this.issue.closed.length
+			},
 			owner: owner,
 			super: this.issue.super
 		};

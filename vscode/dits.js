@@ -117,19 +117,29 @@ class IssueProvider {
 			return;
 		}
 		var t = [];
-		const progress = issue.progress * 100;
-		if (0 <= progress) {
-			t.push({
-				label: `(${progress.toFixed(1)}%) ${issue.title}`,
-				iconPath: new vscode.ThemeIcon('issue-opened')
-			});
-		}
+		//表題
+		t.push({
+			label: issue.title,
+			iconPath: new vscode.ThemeIcon('issue-opened')
+		});
+		//進捗
+		const total = issue.progress.open + issue.progress.closed;
+		const p = total ? 100 * issue.progress.closed / total : 0;
+		const proglessLine = `${p.toFixed(1)}% (${issue.progress.closed} / ${total})`;
+		t.push({
+			label: {
+				label: proglessLine,
+				highlights: [[0, p * proglessLine.length / 100]]
+			}
+		});
+		//所有者
 		if (issue.owner) {
 			t.push({
 				label: `${issue.owner}`,
 				iconPath: new vscode.ThemeIcon('account')
 			});
 		}
+		//超課題
 		if (issue.super) {
 			t.push({
 				label: `${issue.super.label}`,
