@@ -124,8 +124,13 @@ class IssueProvider {
 		});
 		//進捗
 		const total = issue.progress.open + issue.progress.closed;
+		const p = total ? 100 * issue.progress.closed / total : 0;
+		const proglessLine = `${p.toFixed(1)}% (${issue.progress.closed} / ${total})`;
 		t.push({
-			label: `${(total ? 100 * issue.progress.closed / total : 0).toFixed(1)}% (${issue.progress.closed} / ${total})`,
+			label: {
+				label: proglessLine,
+				highlights: [[0, p * proglessLine.length / 100]]
+			}
 		});
 		//所有者
 		if (issue.owner) {
