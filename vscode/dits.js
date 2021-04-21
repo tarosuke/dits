@@ -124,17 +124,19 @@ class IssueProvider {
 		});
 		//進捗
 		const total = issue.progress.open + issue.progress.closed;
-		const p = total ? 100 * issue.progress.closed / total : 0;
-		const proglessLine =
-			`    ${p.toFixed(1)}% (`.slice(-8) +
-			`    ${issue.progress.closed} /`.slice(-7) +
-			`    ${total} )`.slice(-7);
-		t.push({
-			label: {
-				label: proglessLine,
-				highlights: [[0, p * proglessLine.length / 100]]
-			}
-		});
+		if (total) {
+			const p = total ? 100 * issue.progress.closed / total : 0;
+			const proglessLine =
+				`    ${p.toFixed(1)}% (`.slice(-8) +
+				`    ${issue.progress.closed} /`.slice(-7) +
+				`    ${total} )`.slice(-7);
+			t.push({
+				label: {
+					label: proglessLine,
+					highlights: [[0, p * proglessLine.length / 100]]
+				}
+			});
+		}
 		//所有者
 		if (issue.owner) {
 			t.push({
