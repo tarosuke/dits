@@ -554,6 +554,38 @@ exports.DitsRepository = function () {
 	}
 
 
+	this.InputAndDo = function (ToDo, title, placeHalder) {
+		let options = { prompt: title, placeHolder: placeHalder };
+
+		//入力欄生成
+		vscode.window.showInputBox(options).then((value) => {
+			if (!value) {
+				//キャンセル
+				return;
+			}
+			value.trim();
+			if (!value.length) {
+				//入力なし
+				return;
+			}
+
+			ToDo(value);
+
+			//ブランチ再読込
+			vscode.commands.executeCommand('dits.refresh');
+		});
+	}
+	this.Commit = function () {
+		this.InputAndDo(v => {
+			this.git.CommitEmpty(v);
+		});
+	}
+	this.CommitAll = function () {
+		this.InputAndDo(v => {
+			this.git.Do(['commit', '-a', '-m', v]);
+		});
+	}
+
 
 	/////アクセサ
 	this.GetSub = function () {
