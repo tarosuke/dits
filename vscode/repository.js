@@ -554,7 +554,7 @@ exports.DitsRepository = function () {
 	}
 
 
-	this.InputAndDo = function (ToDo, title, placeHalder) {
+	this.InputAndDo = function (ToDo, title = '', placeHalder = '') {
 		let options = { prompt: title, placeHolder: placeHalder };
 
 		//入力欄生成
@@ -578,12 +578,12 @@ exports.DitsRepository = function () {
 	this.Commit = function () {
 		this.InputAndDo(v => {
 			this.git.CommitEmpty(v);
-		});
+		}, '', 'Message to commit "as is"');
 	}
 	this.CommitAll = function () {
 		this.InputAndDo(v => {
 			this.git.Do(['commit', '-a', '-m', v]);
-		});
+		}, '', 'Message to commit "all"');
 	}
 
 
