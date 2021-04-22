@@ -49,6 +49,12 @@
 		},{
 			"command": "dits.goParent",
 			"title": "Checkout super issue"
+		},{
+			"command": "dits.commit",
+			"title": "Commit"
+		},{
+			"command": "dits.commitAll",
+			"title": "Commit modified"
 		}],
 		"menus": {
 			"view/title": [
@@ -75,6 +81,13 @@
 					"command": "dits.newChild",
 					"when": "view == children",
 					"group": "navigation"
+				},
+				{
+					"command": "dits.commit",
+					"when": "view == log"				},
+				{
+					"command": "dits.commitAll",
+					"when": "view == log"
 				}
 			],
 			"view/item/context": [
