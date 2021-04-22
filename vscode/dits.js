@@ -92,12 +92,16 @@ function activate(context) {
 			this.repository.Chdir(v);
 		}));
 	context.subscriptions.push(
-		vscode.commands.registerCommand('dits.commit', (v) => {
+		vscode.commands.registerCommand('dits.commit', () => {
 			this.repository.Commit();
 		}));
 	context.subscriptions.push(
-		vscode.commands.registerCommand('dits.commitAll', (v) => {
+		vscode.commands.registerCommand('dits.commitAll', () => {
 			this.repository.CommitAll();
+		}));
+	context.subscriptions.push(
+		vscode.commands.registerCommand('dits.regress', (v) => {
+			this.repository.Regress(v);
 		}));
 }
 

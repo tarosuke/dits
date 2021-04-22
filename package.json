@@ -55,6 +55,9 @@
 		},{
 			"command": "dits.commitAll",
 			"title": "Commit modified"
+		},{
+			"command": "dits.regress",
+			"title": "Regress closed issue"
 		}],
 		"menus": {
 			"view/title": [
@@ -84,7 +87,8 @@
 				},
 				{
 					"command": "dits.commit",
-					"when": "view == log"				},
+					"when": "view == log"
+				},
 				{
 					"command": "dits.commitAll",
 					"when": "view == log"
@@ -95,6 +99,9 @@
 				"command": "dits.deleteSub",
 				"when": "view == children",
 				"group": "navigation"
+			},{
+				"command": "dits.regress",
+				"when": "view == closedChildren"
 			}]
 		},
 		"viewsContainers": {
