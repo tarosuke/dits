@@ -588,7 +588,10 @@ exports.DitsRepository = function () {
 			this.git.Do(['commit', '-a', '-m', v]);
 		});
 	}
-	this.Regress = function(target){
+	this.Regress = function (target) {
+		//targetはCommit内にもう一つcommit:Commitが追加された構造
+		//内側のCommitは課題終了時のマージコミット
+		//なのでrevert対象であり、これのparent2が再開ポイント
 	}
 
 
