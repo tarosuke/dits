@@ -56,8 +56,11 @@
 			"command": "dits.commitAll",
 			"title": "Commit modified"
 		},{
-			"command": "dits.regress",
-			"title": "Regress closed issue"
+			"command": "dits.reopen",
+			"title": "Reopen"
+		},{
+			"command": "dits.revert",
+			"title": "Revert"
 		}],
 		"menus": {
 			"view/title": [
@@ -100,7 +103,10 @@
 				"when": "view == children",
 				"group": "navigation"
 			},{
-				"command": "dits.regress",
+				"command": "dits.reopen",
+				"when": "view == closedChildren"
+			},{
+				"command": "dits.revert",
 				"when": "view == closedChildren"
 			}]
 		},
