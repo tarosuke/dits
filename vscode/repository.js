@@ -148,6 +148,47 @@ class Git {
 
 		return bi;
 	}
+
+	//フルコミット情報取得
+	GetFullCommit(hash) {
+		const rawData = this.Do(['log', '--no-walk', '--pretty=raw', hash]);
+		if (!rawData) {
+			return;
+		}
+		var result = {
+			hash: null,
+			parents: [],
+			owner: null,
+			message: null
+		};
+		rawData.split('\n').forEach(line => {
+			const token = line.split(' ');
+			switch (token[0]) {
+				case 'commit':
+					result.hash = token[1];
+					break;
+				case 'parent':
+					result.parents.push(token[1]);
+					break;
+				case 'author':
+					result.owner = line.slice(7, -17);
+					break;
+				case 'tree':
+				case 'committer':
+					break;
+				default:
+					if (line && 4 < line.length) {
+						if (!result.message) {
+							result.message = line.slice(4);
+						} else {
+							result.message += '\n' + line.slice(4);
+						}
+					}
+					break;
+			}
+		});
+		return result;
+	}
 };
 
 
@@ -212,10 +253,11 @@ class Issue {
 		}
 	}
 
-	#Finish(cargs) {
+	#Finish(cargs, commit) {
 		this.closed.push({
 			hash: cargs[2].replace(/(\'|#)/g, ''),
-			revision: this.revision
+			revision: this.revision,
+			commit: commit
 		});
 	}
 
@@ -266,8 +308,10 @@ class Issue {
 							this.#Super(c, cargs);
 							break;
 						case 'finish': //課題完了
-							this.#Finish(cargs);
+							this.#Finish(cargs, c);
 							break;
+						// case 'regress': //課題再開
+						// 	break;
 						default:
 							vscode.window.showErrorMessage(
 								`Unrecognized dits command: ${c.message}`);
@@ -584,6 +628,18 @@ exports.DitsRepository = function () {
 		this.InputAndDo(v => {
 			this.git.Do(['commit', '-a', '-m', v]);
 		}, '', 'Message to commit "all"');
+	}
+	this.Regress = function (target) {
+		//targetはCommit内にもう一つcommit:Commitが追加された構造
+		//内側のCommitは課題終了時のマージコミット
+		//なのでrevert対象であり、これのparents[1]が再開ポイント
+		const fc = this.git.GetFullCommit(target.commit.hash);
+		if (!fc) {
+			return;
+		}
+
+		this.git.Do(['revert', '-m', '0', target.hash]);
+		this.git.Do(['branch', `#${target.hash}`, fc.parents[1] ]);
 	}
 
 
