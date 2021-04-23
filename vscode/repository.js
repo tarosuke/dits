@@ -148,6 +148,47 @@ class Git {
 
 		return bi;
 	}
+
+	//フルコミット情報取得
+	GetFullCommit(hash) {
+		const rawData = this.Do(['log', '--no-walk', '--pretty=raw', hash]);
+		if (!rawData) {
+			return;
+		}
+		var result = {
+			hash: null,
+			parents: [],
+			owner: null,
+			message: null
+		};
+		rawData.split('\n').forEach(line => {
+			const token = line.split(' ');
+			switch (token[0]) {
+				case 'commit':
+					result.hash = token[1];
+					break;
+				case 'parent':
+					result.parents.push(token[1]);
+					break;
+				case 'author':
+					result.owner = line.slice(7, -17);
+					break;
+				case 'tree':
+				case 'committer':
+					break;
+				default:
+					if (line && 4 < line.length) {
+						if (!result.message) {
+							result.message = line.slice(4);
+						} else {
+							result.message += '\n' + line.slice(4);
+						}
+					}
+					break;
+			}
+		});
+		return result;
+	}
 };
 
 
@@ -591,7 +632,8 @@ exports.DitsRepository = function () {
 	this.Regress = function (target) {
 		//targetはCommit内にもう一つcommit:Commitが追加された構造
 		//内側のCommitは課題終了時のマージコミット
-		//なのでrevert対象であり、これのparent2が再開ポイント
+		//なのでrevert対象であり、これのparent[1]が再開ポイント
+		const fc = this.git.GetFullCommit(target.commit.hash);
 	}
 
 
