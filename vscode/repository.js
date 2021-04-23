@@ -629,17 +629,16 @@ exports.DitsRepository = function () {
 			this.git.Do(['commit', '-a', '-m', v]);
 		}, '', 'Message to commit "all"');
 	}
-	this.Regress = function (target) {
-		//targetはCommit内にもう一つcommit:Commitが追加された構造
-		//内側のCommitは課題終了時のマージコミット
-		//なのでrevert対象であり、これのparents[1]が再開ポイント
+	this.Reopen = function (target) {
 		const fc = this.git.GetFullCommit(target.commit.hash);
 		if (!fc) {
+			//取得できなかった
 			return;
 		}
-
-		this.git.Do(['revert', '-m', '0', target.hash]);
 		this.git.Do(['branch', `#${target.hash}`, fc.parents[1] ]);
+	}
+	this.Revert = function (target) {
+		this.git.Do(['revert', target.hash]);
 	}
 
 
