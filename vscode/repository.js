@@ -212,10 +212,11 @@ class Issue {
 		}
 	}
 
-	#Finish(cargs) {
+	#Finish(cargs, commit) {
 		this.closed.push({
 			hash: cargs[2].replace(/(\'|#)/g, ''),
-			revision: this.revision
+			revision: this.revision,
+			commit: commit
 		});
 	}
 
@@ -266,8 +267,10 @@ class Issue {
 							this.#Super(c, cargs);
 							break;
 						case 'finish': //課題完了
-							this.#Finish(cargs);
+							this.#Finish(cargs, c);
 							break;
+						// case 'regress': //課題再開
+						// 	break;
 						default:
 							vscode.window.showErrorMessage(
 								`Unrecognized dits command: ${c.message}`);
@@ -584,6 +587,8 @@ exports.DitsRepository = function () {
 		this.InputAndDo(v => {
 			this.git.Do(['commit', '-a', '-m', v]);
 		});
+	}
+	this.Regress = function(target){
 	}
 
 
