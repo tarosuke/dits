@@ -635,6 +635,7 @@ exports.DitsRepository = function () {
 			//取得できなかった
 			return;
 		}
+		this.git.CommitEmpty(`.dits reopen #${target.hash}`);
 		this.git.Do(['branch', `#${target.hash}`, fc.parents[1] ]);
 	}
 	this.Revert = function (target) {
