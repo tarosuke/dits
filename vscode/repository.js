@@ -99,7 +99,7 @@ class Git {
 
 	//メッセージだけの空コミット
 	CommitEmpty(message) {
-		this.Do(['commit', '--allow-empty', '-m', message]);
+		return this.Do(['commit', '--allow-empty', '-m', message]);
 	};
 
 	//現ブランチのログを取得
@@ -208,6 +208,7 @@ class Issue {
 	sub = new Commits;
 	closed = [];
 	deleted = [];
+	#reopened = [];
 
 	//ditsコマンドの解釈
 	#NewSubIssue(c, cargs) {
@@ -254,11 +255,13 @@ class Issue {
 	}
 
 	#Finish(cargs, commit) {
-		this.closed.push({
-			hash: cargs[2].replace(/(\'|#)/g, ''),
-			revision: this.revision,
-			commit: commit
-		});
+		if (this.#reopened.findIndex(e => IsSame(e, cargs[2])) < 0){
+			this.closed.push({
+				hash: cargs[2].replace(/(\'|#)/g, ''),
+				revision: this.revision,
+				commit: commit
+			});
+		}
 	}
 
 	constructor(commits, branchInfo) {
@@ -310,8 +313,9 @@ class Issue {
 						case 'finish': //課題完了
 							this.#Finish(cargs, c);
 							break;
-						// case 'regress': //課題再開
-						// 	break;
+						case 'reopen': //課題再開
+							this.#reopened.push(cargs[2]);
+						 	break;
 						default:
 							vscode.window.showErrorMessage(
 								`Unrecognized dits command: ${c.message}`);
@@ -447,6 +451,43 @@ exports.DitsRepository = function () {
 			vscode.commands.executeCommand('dits.refresh');
 		});
 	}
+	this.pushSubIssue = function(branchName){
+		vscode.window.withProgress({
+			location: vscode.ProgressLocation.Notification,
+			title: 'syncing remote',
+			cancellable: false
+		}, (progress, token) => {
+			progress.report({ increment: 0 });
+
+			const p = new Promise((resolve, reject) => {
+				if (!this.git.DoR([
+					'push',
+					'--set-upstream',
+					'origin',
+					branchName],
+					true)) {
+					vscode.window.showWarningMessage(
+						`Issue ${ticket.label} is already exsits.`);
+					this.git.Do([
+						'checkout',
+						this.issue.currentBranch]);
+					this.git.Do([
+						'branch',
+						'-D',
+						branchName]);
+					this.git.DoR(['fetch']);
+					this.git.DoR([
+						'branch',
+						branchName,
+						`origin/${branchName}`]);
+				}
+				progress.report({ increment: 100 });
+				resolve();
+				vscode.commands.executeCommand('dits.refresh');
+			});
+			return p;
+		})
+	}
 	this.OpenChild = async function (ticket) { //副課題を開く
 		const branchName = `#${ticket.hash}`;
 		const reopen = this.git.GetBranchInfo().IsIn(branchName);
@@ -461,6 +502,9 @@ exports.DitsRepository = function () {
 					'.dits super ' +
 					this.issue.currentBranch + ' ' +
 					this.issue.currentTitle);
+
+				this.pushSubIssue(branchName);
+				return;
 
 				vscode.window.withProgress({
 					location: vscode.ProgressLocation.Notification,
@@ -512,16 +556,15 @@ exports.DitsRepository = function () {
 				this.git.Do([
 					'merge',
 					'--no-ff',
-					'-m',
-					`.dits finish ${this.issue.currentBranch}`,
 					this.issue.currentBranch]) &&
+				this.git.CommitEmpty(`.dits finish ${this.issue.currentBranch}`) &&
 				this.git.Do(['branch', '-D', this.issue.currentBranch]) &&
 				this.git.DoR([
 					'push', 'origin', `:${this.issue.currentBranch}`])) {
 				vscode.commands.executeCommand('dits.refresh');
 			} else {
 				vscode.window.showErrorMessage(
-					'Failed some operations. Try manually.');
+					'Failed some operations. Check & Try manually.');
 			}
 		} else {
 			vscode.window.showErrorMessage(
@@ -629,17 +672,20 @@ exports.DitsRepository = function () {
 			this.git.Do(['commit', '-a', '-m', v]);
 		}, '', 'Message to commit "all"');
 	}
-	this.Regress = function (target) {
-		//targetはCommit内にもう一つcommit:Commitが追加された構造
-		//内側のCommitは課題終了時のマージコミット
-		//なのでrevert対象であり、これのparents[1]が再開ポイント
+	this.Reopen = function (target) {
 		const fc = this.git.GetFullCommit(target.commit.hash);
 		if (!fc) {
+			//取得できなかった
 			return;
 		}
-
-		this.git.Do(['revert', '-m', '0', target.hash]);
-		this.git.Do(['branch', `#${target.hash}`, fc.parents[1] ]);
+		const branchName = `#${target.hash}`;
+		this.git.CommitEmpty(`.dits reopen ${branchName}`);
+		this.git.Do(['branch', `${branchName}`, fc.parents[1] ]);
+		this.pushSubIssue(branchName);
+	}
+	this.Revert = function (target) {
+		this.git.Do(['revert', target.hash]);
+		vscode.commands.executeCommand('dits.refresh');
 	}
 
 

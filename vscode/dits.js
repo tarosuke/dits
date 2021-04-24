@@ -100,8 +100,12 @@ function activate(context) {
 			this.repository.CommitAll();
 		}));
 	context.subscriptions.push(
-		vscode.commands.registerCommand('dits.regress', (v) => {
-			this.repository.Regress(v);
+		vscode.commands.registerCommand('dits.reopen', (v) => {
+			this.repository.Reopen(v);
+		}));
+	context.subscriptions.push(
+		vscode.commands.registerCommand('dits.revert', (v) => {
+			this.repository.Revert(v);
 		}));
 }
 
