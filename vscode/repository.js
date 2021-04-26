@@ -504,43 +504,6 @@ exports.DitsRepository = function () {
 					this.issue.currentTitle);
 
 				this.pushSubIssue(branchName);
-				return;
-
-				vscode.window.withProgress({
-					location: vscode.ProgressLocation.Notification,
-					title: 'syncing remote',
-					cancellable: false
-				}, (progress, token) => {
-					progress.report({ increment: 0 });
-
-					const p = new Promise((resolve, reject) => {
-						if (!this.git.DoR([
-							'push',
-							'--set-upstream',
-							'origin',
-							branchName],
-							true)) {
-							vscode.window.showWarningMessage(
-								`Issue ${ticket.label} is already exsits.`);
-							this.git.Do([
-								'checkout',
-								this.issue.currentBranch]);
-							this.git.Do([
-								'branch',
-								'-D',
-								branchName]);
-							this.git.DoR(['fetch']);
-							this.git.DoR([
-								'branch',
-								branchName,
-								`origin/${branchName}`]);
-						}
-						progress.report({ increment: 100 });
-						resolve();
-						vscode.commands.executeCommand('dits.refresh');
-					});
-					return p;
-				})
 			}
 		}
 		vscode.commands.executeCommand('dits.refresh');
