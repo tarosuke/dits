@@ -47,9 +47,6 @@ class Commits {
 	GetLength() {
 		return this.#list.length;
 	}
-	FindByBranchName(name) {
-		return this.#list.find(i => name == `#${i.hash}`);
-	}
 };
 
 //ブランチ情報
@@ -198,7 +195,7 @@ class Git {
 
 //issue関連
 class Entry {
-	key;
+	hash;
 	title;
 	#closedAt;
 	#state = 0; //0:new, 1:opened, 2:closed, 3:dereted
@@ -209,7 +206,7 @@ class Entry {
 		this.#state = s;
 	};
 	constructor(hash) {
-		key = hash;
+		this.hash = hash.replace(/^#/, '');
 	}
 	New(title) {
 		this.title = title;
@@ -217,6 +214,7 @@ class Entry {
 	Open() { this.#Set(1); };
 	Close(at) { this.#Set(2); this.#closedAt = at; };
 	Delete() { this.#Set(3); };
+	MarkIgnore() { if (!this.title) { this.#Set(4); } };
 	IsNew() { return !this.#state; }
 	IsOpend() { return this.#state == 1; }
 	IsClosed() { return this.#state == 2;; }
@@ -239,10 +237,30 @@ class Issue {
 	deleted = [];
 	#reopened = [];
 
-	//副課題リスト管理
+	//副課題リスト
 	newSub = [];
-
-
+	#GetSub(hash) {
+		var t = this.newSub.find(i => IsSame(hash, i.hash));
+		if (t) {
+			return t;
+		}
+		t = new Entry(hash);
+		this.newSub.push(t);
+		return t;
+	}
+	#NewSub(hash, title) {
+		var t = this.#GetSub(hash);
+		t.New(title);
+		if (this.#branchInfo.IsIn(hash)){
+			t.Open();
+		}
+	};
+	#OpenSub(hash) { this.#GetSub(hash).Open(); };
+	#CloseSub(hash) { this.#GetSub(hash).Close(); };
+	#DeleteSub(hash) { this.#GetSub(hash).Delete(); };
+	#IgnoreUnlabeled() {
+		this.newSub.forEach(e => e.MarkIgnore());
+	}
 
 	//ditsコマンドの解釈
 	#NewSubIssue(c, cargs) {
@@ -289,7 +307,7 @@ class Issue {
 	}
 
 	#Finish(cargs, commit) {
-		if (this.#reopened.findIndex(e => IsSame(e, cargs[2])) < 0){
+		if (this.#reopened.findIndex(e => IsSame(e, cargs[2])) < 0) {
 			this.closed.push({
 				hash: cargs[2].replace(/(\'|#)/g, ''),
 				revision: this.revision,
@@ -320,9 +338,11 @@ class Issue {
 							return true;
 						case 'new': //新規服課題
 							this.#NewSubIssue(c, cargs);
+							this.#NewSub(c.hash, c.message.slice(10));
 							break;
 						case 'delete': //削除済み副課題
 							this.deleted.push(cargs[2]);
+							this.#DeleteSub(cargs[2]);
 							break;
 						case 'title': //課題タイトル
 							if (!this.currentTitle) {
@@ -346,9 +366,11 @@ class Issue {
 							break;
 						case 'finish': //課題完了
 							this.#Finish(cargs, c);
+							this.#CloseSub(cargs[2]);
 							break;
 						case 'reopen': //課題再開
 							this.#reopened.push(cargs[2]);
+							this.#OpenSub(cargs[2]);
 						 	break;
 						default:
 							vscode.window.showErrorMessage(
@@ -359,6 +381,7 @@ class Issue {
 				case 'Merge': //merge=finish
 					if (backwordCompatible) {
 						this.#Finish(cargs);
+						this.#CloseSub(cargs[2]);
 					}
 					break;
 				default: //コマンドではないコミットのコメントはただのコメント
@@ -369,6 +392,8 @@ class Issue {
 		});
 
 		//closedからラベルがない(=dits管理外)要素を除去
+		this.#IgnoreUnlabeled();
+
 		var newClosed = [];
 		this.closed.forEach(e => {
 			if (e.label) {
