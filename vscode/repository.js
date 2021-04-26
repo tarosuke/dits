@@ -258,7 +258,10 @@ class Issue {
 		}
 	};
 	#OpenSub(hash) { this.#GetSub(hash).Open(); };
-	#CloseSub(hash) { this.#GetSub(hash).Close(); };
+	#CloseSub(hash, closedAt) {
+		var t = this.#GetSub(hash)
+		t.Close(closedAt);
+	};
 	#DeleteSub(hash) { this.#GetSub(hash).Delete(); };
 	#IgnoreUnlabeled() {
 		this.newSub.forEach(e => e.MarkIgnore());
@@ -388,7 +391,7 @@ class Issue {
 							break;
 						case 'finish': //課題完了
 							this.#Finish(cargs, c);
-							this.#CloseSub(cargs[2]);
+							this.#CloseSub(cargs[2], c.hash);
 							break;
 						case 'reopen': //課題再開
 							this.#reopened.push(cargs[2]);
