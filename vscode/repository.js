@@ -233,7 +233,6 @@ class Issue {
 	ownerCommit;
 	//状態別issueリスト
 	super;
-	sub = new Commits;
 	closed = [];
 	deleted = [];
 	#reopened = [];
@@ -266,6 +265,19 @@ class Issue {
 	#IgnoreUnlabeled() {
 		this.newSub.forEach(e => e.MarkIgnore());
 	}
+	GetProgress() {
+		var p = { closed: 0, open: 0 };
+		this.newSub.forEach(e => {
+			if (!e.IsDeleted()) {
+				if (e.IsClosed()) {
+					p.closed++;
+				} else {
+					p.open++
+				};
+			}
+		});
+		return p;
+	}
 	GetLivingList() {
 		var t = [];
 		this.newSub.forEach(e => {
@@ -288,29 +300,6 @@ class Issue {
 	}
 
 	//ditsコマンドの解釈
-	#NewSubIssue(c, cargs) {
-		const label = c.message.slice(10);
-		const h = `#${c.hash}`;
-		if (!this.deleted.find(e => IsSame(e, h))) {
-			//deletedにないので存在するsubIssue
-			const ce = this.closed.find(e => IsSame(e.hash, c.hash));
-			if (!ce) {
-				//closedにないので生きているsubIssue
-				if (this.#branchInfo.list.indexOf(h) < 0) {
-					//ブランチがないのでコミットに新規フラグを追加する
-					c.notOpened = true;
-				}
-				//表示用データ追加
-				c.label = label;
-				//subIssueリストに追加
-				this.sub.Add(c);
-			} else {
-				//closedなのでエントリにラベルを追加
-				ce.label = c.message.slice(10);
-			}
-		}
-	}
-
 	#Super(c, cargs) {
 		const pLabel =
 			c.message.slice(
@@ -328,16 +317,6 @@ class Issue {
 	#SetOwner(commit) {
 		if (!this.ownerCommit) {
 			this.ownerCommit = commit.hash;
-		}
-	}
-
-	#Finish(cargs, commit) {
-		if (this.#reopened.findIndex(e => IsSame(e, cargs[2])) < 0) {
-			this.closed.push({
-				hash: cargs[2].replace(/(\'|#)/g, ''),
-				revision: this.revision,
-				commit: commit
-			});
 		}
 	}
 
@@ -362,7 +341,6 @@ class Issue {
 							this.#SetOwner(c);
 							return true;
 						case 'new': //新規服課題
-							this.#NewSubIssue(c, cargs);
 							this.#NewSub(c.hash, c.message.slice(10));
 							break;
 						case 'delete': //削除済み副課題
@@ -390,7 +368,6 @@ class Issue {
 							this.#Super(c, cargs);
 							break;
 						case 'finish': //課題完了
-							this.#Finish(cargs, c);
 							this.#CloseSub(cargs[2], c.hash);
 							break;
 						case 'reopen': //課題再開
@@ -405,7 +382,6 @@ class Issue {
 					break;
 				case 'Merge': //merge=finish
 					if (backwordCompatible) {
-						this.#Finish(cargs);
 						this.#CloseSub(cargs[2]);
 					}
 					break;
@@ -630,7 +606,7 @@ exports.DitsRepository = function () {
 		vscode.commands.executeCommand('dits.refresh');
 	}
 	this.Finish = function () {
-		if (this.issue.sub.GetLength()) {
+		if (this.issue.GetProgress().open) {
 			vscode.window.showErrorMessage(
 				'There are subIssues. First, Delete or Finish them.');
 			return;
@@ -666,7 +642,7 @@ exports.DitsRepository = function () {
 		}
 	}
 	this.Delete = async function () {
-		if (this.issue.sub.GetLength()) {
+		if (this.issue.GetProgress().open) {
 			vscode.window.showErrorMessage(
 				'There are subIssues. First, Delete or Finish them.');
 			return;
@@ -794,10 +770,7 @@ exports.DitsRepository = function () {
 		//データ生成
 		return {
 			title: this.issue.currentTitle,
-			progress: {
-				open: this.issue.sub.GetLength(),
-				closed: this.issue.closed.length
-			},
+			progress: this.issue.GetProgress(),
 			owner: owner,
 			super: this.issue.super
 		};
