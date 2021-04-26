@@ -274,7 +274,7 @@ class Issue {
 	GetClosedList() {
 		var t = [];
 		this.newSub.forEach(e => {
-			if (e.Closed()) {
+			if (e.IsClosed()) {
 				//追加
 				t.push(e);
 			}
@@ -752,7 +752,7 @@ exports.DitsRepository = function () {
 		}, '', 'Message to commit "all"');
 	}
 	this.Reopen = function (target) {
-		const fc = this.git.GetFullCommit(target.commit.hash);
+		const fc = this.git.GetFullCommit(target.hash);
 		if (!fc) {
 			//取得できなかった
 			return;
@@ -770,7 +770,7 @@ exports.DitsRepository = function () {
 
 	/////アクセサ
 	this.GetSub = function () {
-		return this.issue.sub.GetList();
+		return this.issue.GetLivingList();
 	}
 	this.GetLog = function () {
 		return this.issue.log;
@@ -798,7 +798,7 @@ exports.DitsRepository = function () {
 		};
 	}
 	this.GetClosedSub = function () {
-		return this.issue.closed;
+		return this.issue.GetClosedList();
 	}
 
 
