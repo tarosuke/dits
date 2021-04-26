@@ -208,8 +208,9 @@ class Entry {
 	constructor(hash) {
 		this.hash = hash.replace(/^#/, '');
 	}
-	New(title) {
+	New(hash, title) {
 		this.title = title;
+		this.hash = hash;
 	};
 	Open() { this.#Set(1); };
 	Close(at) { this.#Set(2); this.#closedAt = at; };
@@ -250,8 +251,9 @@ class Issue {
 	}
 	#NewSub(hash, title) {
 		var t = this.#GetSub(hash);
-		t.New(title);
-		if (this.#branchInfo.IsIn(hash)){
+		t.New(hash, title);
+		if (this.#branchInfo.IsIn(hash)) {
+			//対応するブランチがあるならOpenにするd
 			t.Open();
 		}
 	};
