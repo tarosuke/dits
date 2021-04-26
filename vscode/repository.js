@@ -216,7 +216,7 @@ class Entry {
 	Delete() { this.#Set(3); };
 	MarkIgnore() { if (!this.title) { this.#Set(4); } };
 	IsNew() { return !this.#state; }
-	IsOpend() { return this.#state == 1; }
+	IsOpened() { return this.#state == 1; }
 	IsClosed() { return this.#state == 2;; }
 	IsDeleted() { return this.#state == 3; }
 };
@@ -260,6 +260,26 @@ class Issue {
 	#DeleteSub(hash) { this.#GetSub(hash).Delete(); };
 	#IgnoreUnlabeled() {
 		this.newSub.forEach(e => e.MarkIgnore());
+	}
+	GetLivingList() {
+		var t = [];
+		this.newSub.forEach(e => {
+			if (e.IsNew() || e.IsOpened()){
+				//追加
+				t.push(e);
+			}
+		});
+		return t;
+	}
+	GetClosedList() {
+		var t = [];
+		this.newSub.forEach(e => {
+			if (e.Closed()) {
+				//追加
+				t.push(e);
+			}
+		});
+		return t;
 	}
 
 	//ditsコマンドの解釈
