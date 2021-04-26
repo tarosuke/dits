@@ -10,9 +10,12 @@ var backwordCompatible = false;
 
 
 //ハッシュ／ブランチ比較
-function IsSame(a, b) {
+function IsSame(aa, bb) {
+	const a = aa.replace(/^#/, '');
+	const b = bb.replace(/^#/, '');
 	return backwordCompatible ?
-		a.length < b.length ? !b.indexOf(a) : !a.indexOf(b) : a === b;
+		a.length < b.length ? !b.indexOf(a) : !a.indexOf(b) :
+		a === b;
 };
 
 
@@ -194,6 +197,32 @@ class Git {
 
 
 //issue関連
+class Entry {
+	key;
+	title;
+	#closedAt;
+	#state = 0; //0:new, 1:opened, 2:closed, 3:dereted
+	#Set(s) {
+		if (this.#state) {
+			return;
+		}
+		this.#state = s;
+	};
+	constructor(hash) {
+		key = hash;
+	}
+	New(title) {
+		this.title = title;
+	};
+	Open() { this.#Set(1); };
+	Close(at) { this.#Set(2); this.#closedAt = at; };
+	Delete() { this.#Set(3); };
+	IsNew() { return !this.#state; }
+	IsOpend() { return this.#state == 1; }
+	IsClosed() { return this.#state == 2;; }
+	IsDeleted() { return this.#state == 3; }
+};
+
 class Issue {
 	#branchInfo;
 	//dits管理外commit
@@ -209,6 +238,11 @@ class Issue {
 	closed = [];
 	deleted = [];
 	#reopened = [];
+
+	//副課題リスト管理
+	newSub = [];
+
+
 
 	//ditsコマンドの解釈
 	#NewSubIssue(c, cargs) {
