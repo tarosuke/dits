@@ -197,7 +197,7 @@ class Git {
 class Entry {
 	hash;
 	title;
-	#closedAt;
+	closedAt;
 	#state = 0; //0:new, 1:opened, 2:closed, 3:dereted
 	#Set(s) {
 		if (this.#state) {
@@ -213,7 +213,7 @@ class Entry {
 		this.hash = hash;
 	};
 	Open() { this.#Set(1); };
-	Close(at) { this.#Set(2); this.#closedAt = at; };
+	Close(at) { this.#Set(2); this.closedAt = at; };
 	Delete() { this.#Set(3); };
 	MarkIgnore() { if (!this.title) { this.#Set(4); } };
 	IsNew() { return !this.#state; }
@@ -757,7 +757,7 @@ exports.DitsRepository = function () {
 		}, '', 'Message to commit "all"');
 	}
 	this.Reopen = function (target) {
-		const fc = this.git.GetFullCommit(target.hash);
+		const fc = this.git.GetFullCommit(target.closedAt);
 		if (!fc) {
 			//取得できなかった
 			return;
