@@ -557,7 +557,7 @@ exports.DitsRepository = function () {
 
 		if (this.git.Do(command)) {
 			if (!reopen) {
-				this.git.CommitEmpty(`.dits open ${ticket.label}`);
+				this.git.CommitEmpty(`.dits open ${ticket.title}`);
 				this.git.CommitEmpty(
 					'.dits super ' +
 					this.issue.currentBranch + ' ' +
