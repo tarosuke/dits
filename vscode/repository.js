@@ -213,7 +213,11 @@ class Entry {
 		this.hash = hash;
 	};
 	Open() { this.#Set(1); };
-	Close(at) { this.#Set(2); this.closedAt = at; };
+	Close(at, rev) {
+		this.#Set(2);
+		this.closedAt = at;
+		this.revision = rev;
+	};
 	Delete() { this.#Set(3); };
 	MarkIgnore() { if (!this.title) { this.#Set(4); } };
 	IsNew() { return !this.#state; }
@@ -256,7 +260,7 @@ class Issue {
 	#OpenSub(hash) { this.#GetSub(hash).Open(); };
 	#CloseSub(hash, closedAt) {
 		var t = this.#GetSub(hash)
-		t.Close(closedAt);
+		t.Close(closedAt, this.revision);
 	};
 	#DeleteSub(hash) { this.#GetSub(hash).Delete(); };
 	#IgnoreUnlabeled() {
@@ -450,7 +454,7 @@ exports.DitsRepository = function () {
 					r = e.revision;
 					note += `## ${r}\n`;
 				}
-				note += `* ${e.label}\n`;
+				note += `* ${e.title}\n`;
 			});
 			fs.writeFileSync(`${this.currentPath}/RELEASE.md`, note, 'utf8');
 			this.git.Do(['add', 'RELEASE.md']);
