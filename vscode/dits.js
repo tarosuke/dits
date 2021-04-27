@@ -194,7 +194,7 @@ class ChildrenTreeviewProvider {
 	getTreeItem(c) {
 		return {
 			label: {
-				label: c.GetTitle(),
+				label: c.title,
 				highlights: [[0, !c.IsOpened() ? c.title.length : 0]]
 			},
 			hash: c.hash,
@@ -214,7 +214,7 @@ class ClosedChildrenTreeviewProvider {
 	}
 	getTreeItem(c) {
 		return {
-			label: c.GetTitle(),
+			label: c.title,
 			hash: c.hash,
 			closedAt: c.closedAt
 		};
