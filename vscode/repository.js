@@ -7,6 +7,7 @@ const fs = require("fs");
 
 //後方互換性設定
 var backwordCompatible = false;
+var dogfoodingDebug = false;
 
 
 //ハッシュ／ブランチ比較
@@ -224,6 +225,10 @@ class Entry {
 	IsOpened() { return this.#state == 1; }
 	IsClosed() { return this.#state == 2;; }
 	IsDeleted() { return this.#state == 3; }
+
+	GetTitle() {
+		return dogfoodingDebug ? `${this.#state}:${this.title}` : this.title;
+	}
 };
 
 class Issue {
@@ -325,6 +330,8 @@ class Issue {
 		//設定の読み込み
 		backwordCompatible =
 			vscode.workspace.getConfiguration('dits').get('backwordCompatible');
+		dogfoodingDebug =
+			vscode.workspace.getConfiguration('dits').get('dogfoodingDebug');
 
 		this.#branchInfo = branchInfo;
 		this.currentBranch = branchInfo.current;

@@ -160,6 +160,11 @@
 					"type": "boolean",
 					"default" : false,
 					"description": "Recognize short hash and branchname without # and default Merge commit, parent command"
+				},
+				"dits.dogfoodingDebug":{
+					"type": "boolean",
+					"default": false,
+					"description": "enable inform to debug"
 				}
 			}
 		}
