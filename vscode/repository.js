@@ -210,7 +210,7 @@ class Entry {
 	}
 	New(hash, title) {
 		this.title = title;
-		this.hash = hash;
+		this.hash = hash.replace(/^#/, '');
 	};
 	Open() { this.#Set(1); };
 	Close(at, rev) {
@@ -219,7 +219,7 @@ class Entry {
 		this.revision = rev;
 	};
 	Delete() { this.#Set(3); };
-	MarkIgnore() { if (!this.title) { this.#Set(4); } };
+	MarkIgnore() { if (!this.title) { this.#state = 4; } };
 	IsNew() { return !this.#state; }
 	IsOpened() { return this.#state == 1; }
 	IsClosed() { return this.#state == 2;; }
@@ -253,14 +253,13 @@ class Issue {
 		var t = this.#GetSub(hash);
 		t.New(hash, title);
 		if (this.#branchInfo.IsIn(hash)) {
-			//対応するブランチがあるならOpenにするd
+			//対応するブランチがあるならOpenにする
 			t.Open();
 		}
 	};
 	#OpenSub(hash) { this.#GetSub(hash).Open(); };
 	#CloseSub(hash, closedAt) {
-		var t = this.#GetSub(hash)
-		t.Close(closedAt, this.revision);
+		this.#GetSub(hash).Close(closedAt, this.revision);
 	};
 	#DeleteSub(hash) { this.#GetSub(hash).Delete(); };
 	#IgnoreUnlabeled() {
@@ -381,7 +380,7 @@ class Issue {
 					break;
 				case 'Merge': //merge=finish
 					if (backwordCompatible) {
-						this.#CloseSub(cargs[2]);
+						this.#CloseSub(cargs[2].slice(1, -1), c.hash);
 					}
 					break;
 				default: //コマンドではないコミットのコメントはただのコメント
