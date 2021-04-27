@@ -233,7 +233,6 @@ class Issue {
 	ownerCommit;
 	//状態別issueリスト
 	super;
-	#reopened = [];
 
 	//副課題リスト
 	newSub = [];
@@ -368,7 +367,6 @@ class Issue {
 							this.#CloseSub(cargs[2], c.hash);
 							break;
 						case 'reopen': //課題再開
-							this.#reopened.push(cargs[2]);
 							this.#OpenSub(cargs[2]);
 						 	break;
 						default:
