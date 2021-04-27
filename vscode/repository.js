@@ -213,7 +213,11 @@ class Entry {
 		this.hash = hash;
 	};
 	Open() { this.#Set(1); };
-	Close(at) { this.#Set(2); this.closedAt = at; };
+	Close(at, rev) {
+		this.#Set(2);
+		this.closedAt = at;
+		this.revision = rev;
+	};
 	Delete() { this.#Set(3); };
 	MarkIgnore() { if (!this.title) { this.#Set(4); } };
 	IsNew() { return !this.#state; }
@@ -233,9 +237,6 @@ class Issue {
 	ownerCommit;
 	//状態別issueリスト
 	super;
-	closed = [];
-	deleted = [];
-	#reopened = [];
 
 	//副課題リスト
 	newSub = [];
@@ -259,7 +260,7 @@ class Issue {
 	#OpenSub(hash) { this.#GetSub(hash).Open(); };
 	#CloseSub(hash, closedAt) {
 		var t = this.#GetSub(hash)
-		t.Close(closedAt);
+		t.Close(closedAt, this.revision);
 	};
 	#DeleteSub(hash) { this.#GetSub(hash).Delete(); };
 	#IgnoreUnlabeled() {
@@ -344,7 +345,6 @@ class Issue {
 							this.#NewSub(c.hash, c.message.slice(10));
 							break;
 						case 'delete': //削除済み副課題
-							this.deleted.push(cargs[2]);
 							this.#DeleteSub(cargs[2]);
 							break;
 						case 'title': //課題タイトル
@@ -371,7 +371,6 @@ class Issue {
 							this.#CloseSub(cargs[2], c.hash);
 							break;
 						case 'reopen': //課題再開
-							this.#reopened.push(cargs[2]);
 							this.#OpenSub(cargs[2]);
 						 	break;
 						default:
@@ -394,14 +393,6 @@ class Issue {
 
 		//closedからラベルがない(=dits管理外)要素を除去
 		this.#IgnoreUnlabeled();
-
-		var newClosed = [];
-		this.closed.forEach(e => {
-			if (e.label) {
-				newClosed.push(e);
-			}
-		});
-		this.closed = newClosed;
 
 		if (!this.currentTitle) {
 			//カレントISSUEのタイトルがないときはブランチ名を設定しておく
@@ -458,12 +449,12 @@ exports.DitsRepository = function () {
 
 			var note = '# Release note\n\n';
 			var r = null;
-			this.issue.closed.forEach(e => {
+			this.issue.GetClosedList().forEach(e => {
 				if (r != e.revision) {
 					r = e.revision;
 					note += `## ${r}\n`;
 				}
-				note += `* ${e.label}\n`;
+				note += `* ${e.title}\n`;
 			});
 			fs.writeFileSync(`${this.currentPath}/RELEASE.md`, note, 'utf8');
 			this.git.Do(['add', 'RELEASE.md']);
@@ -616,6 +607,7 @@ exports.DitsRepository = function () {
 				this.git.Do([
 					'merge',
 					'--no-ff',
+					'--no-commit',
 					this.issue.currentBranch]) &&
 				this.git.CommitEmpty(`.dits finish ${this.issue.currentBranch}`) &&
 				this.git.Do(['branch', '-D', this.issue.currentBranch]) &&
