@@ -261,7 +261,7 @@ class Issue {
 		var t = this.#GetSub(hash);
 		t.New(hash, title);
 		if (this.#branchInfo.IsIn(hash)) {
-			//対応するブランチがあるならOpenにするd
+			//対応するブランチがあるならOpenにする
 			t.Open();
 		}
 	};
@@ -391,7 +391,7 @@ class Issue {
 					break;
 				case 'Merge': //merge=finish
 					if (backwordCompatible) {
-						this.#CloseSub(cargs[2]);
+						this.#CloseSub(cargs[2], c.hash);
 					}
 					break;
 				default: //コマンドではないコミットのコメントはただのコメント
