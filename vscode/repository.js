@@ -233,7 +233,6 @@ class Issue {
 	ownerCommit;
 	//状態別issueリスト
 	super;
-	deleted = [];
 	#reopened = [];
 
 	//副課題リスト
@@ -343,7 +342,6 @@ class Issue {
 							this.#NewSub(c.hash, c.message.slice(10));
 							break;
 						case 'delete': //削除済み副課題
-							this.deleted.push(cargs[2]);
 							this.#DeleteSub(cargs[2]);
 							break;
 						case 'title': //課題タイトル
