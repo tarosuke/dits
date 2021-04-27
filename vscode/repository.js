@@ -202,6 +202,9 @@ class Entry {
 	#state = 0; //0:new, 1:opened, 2:closed, 3:dereted
 	#Set(s) {
 		if (this.#state) {
+			if (dogfoodingDebug) {
+				vscode.window.showInformationMessage(`state change ignored:${this.#state}->${s}:${this.title}`);
+			}
 			return;
 		}
 		this.#state = s;
