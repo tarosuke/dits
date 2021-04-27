@@ -233,7 +233,6 @@ class Issue {
 	ownerCommit;
 	//状態別issueリスト
 	super;
-	closed = [];
 	deleted = [];
 	#reopened = [];
 
@@ -395,14 +394,6 @@ class Issue {
 		//closedからラベルがない(=dits管理外)要素を除去
 		this.#IgnoreUnlabeled();
 
-		var newClosed = [];
-		this.closed.forEach(e => {
-			if (e.label) {
-				newClosed.push(e);
-			}
-		});
-		this.closed = newClosed;
-
 		if (!this.currentTitle) {
 			//カレントISSUEのタイトルがないときはブランチ名を設定しておく
 			this.currentTitle = this.currentBranch = branchInfo.current;
@@ -458,7 +449,7 @@ exports.DitsRepository = function () {
 
 			var note = '# Release note\n\n';
 			var r = null;
-			this.issue.closed.forEach(e => {
+			this.issue.GetClosedList().forEach(e => {
 				if (r != e.revision) {
 					r = e.revision;
 					note += `## ${r}\n`;
