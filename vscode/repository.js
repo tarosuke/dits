@@ -10,9 +10,12 @@ var backwordCompatible = false;
 
 
 //ハッシュ／ブランチ比較
-function IsSame(a, b) {
+function IsSame(aa, bb) {
+	const a = aa.replace(/^#/, '');
+	const b = bb.replace(/^#/, '');
 	return backwordCompatible ?
-		a.length < b.length ? !b.indexOf(a) : !a.indexOf(b) : a === b;
+		a.length < b.length ? !b.indexOf(a) : !a.indexOf(b) :
+		a === b;
 };
 
 
@@ -43,9 +46,6 @@ class Commits {
 	}
 	GetLength() {
 		return this.#list.length;
-	}
-	FindByBranchName(name) {
-		return this.#list.find(i => name == `#${i.hash}`);
 	}
 };
 
@@ -194,6 +194,38 @@ class Git {
 
 
 //issue関連
+class Entry {
+	hash;
+	title;
+	closedAt;
+	#state = 0; //0:new, 1:opened, 2:closed, 3:dereted
+	#Set(s) {
+		if (this.#state) {
+			return;
+		}
+		this.#state = s;
+	};
+	constructor(hash) {
+		this.hash = hash.replace(/^#/, '');
+	}
+	New(hash, title) {
+		this.title = title;
+		this.hash = hash;
+	};
+	Open() { this.#Set(1); };
+	Close(at, rev) {
+		this.#Set(2);
+		this.closedAt = at;
+		this.revision = rev;
+	};
+	Delete() { this.#Set(3); };
+	MarkIgnore() { if (!this.title) { this.#Set(4); } };
+	IsNew() { return !this.#state; }
+	IsOpened() { return this.#state == 1; }
+	IsClosed() { return this.#state == 2;; }
+	IsDeleted() { return this.#state == 3; }
+};
+
 class Issue {
 	#branchInfo;
 	//dits管理外commit
@@ -205,35 +237,70 @@ class Issue {
 	ownerCommit;
 	//状態別issueリスト
 	super;
-	sub = new Commits;
-	closed = [];
-	deleted = [];
-	#reopened = [];
 
-	//ditsコマンドの解釈
-	#NewSubIssue(c, cargs) {
-		const label = c.message.slice(10);
-		const h = `#${c.hash}`;
-		if (!this.deleted.find(e => IsSame(e, h))) {
-			//deletedにないので存在するsubIssue
-			const ce = this.closed.find(e => IsSame(e.hash, c.hash));
-			if (!ce) {
-				//closedにないので生きているsubIssue
-				if (this.#branchInfo.list.indexOf(h) < 0) {
-					//ブランチがないのでコミットに新規フラグを追加する
-					c.notOpened = true;
-				}
-				//表示用データ追加
-				c.label = label;
-				//subIssueリストに追加
-				this.sub.Add(c);
-			} else {
-				//closedなのでエントリにラベルを追加
-				ce.label = c.message.slice(10);
-			}
+	//副課題リスト
+	newSub = [];
+	#GetSub(hash) {
+		var t = this.newSub.find(i => IsSame(hash, i.hash));
+		if (t) {
+			return t;
 		}
+		t = new Entry(hash);
+		this.newSub.push(t);
+		return t;
+	}
+	#NewSub(hash, title) {
+		var t = this.#GetSub(hash);
+		t.New(hash, title);
+		if (this.#branchInfo.IsIn(hash)) {
+			//対応するブランチがあるならOpenにするd
+			t.Open();
+		}
+	};
+	#OpenSub(hash) { this.#GetSub(hash).Open(); };
+	#CloseSub(hash, closedAt) {
+		var t = this.#GetSub(hash)
+		t.Close(closedAt, this.revision);
+	};
+	#DeleteSub(hash) { this.#GetSub(hash).Delete(); };
+	#IgnoreUnlabeled() {
+		this.newSub.forEach(e => e.MarkIgnore());
+	}
+	GetProgress() {
+		var p = { closed: 0, open: 0 };
+		this.newSub.forEach(e => {
+			if (!e.IsDeleted()) {
+				if (e.IsClosed()) {
+					p.closed++;
+				} else {
+					p.open++
+				};
+			}
+		});
+		return p;
+	}
+	GetLivingList() {
+		var t = [];
+		this.newSub.forEach(e => {
+			if (e.IsNew() || e.IsOpened()){
+				//追加
+				t.push(e);
+			}
+		});
+		return t;
+	}
+	GetClosedList() {
+		var t = [];
+		this.newSub.forEach(e => {
+			if (e.IsClosed()) {
+				//追加
+				t.push(e);
+			}
+		});
+		return t;
 	}
 
+	//ditsコマンドの解釈
 	#Super(c, cargs) {
 		const pLabel =
 			c.message.slice(
@@ -251,16 +318,6 @@ class Issue {
 	#SetOwner(commit) {
 		if (!this.ownerCommit) {
 			this.ownerCommit = commit.hash;
-		}
-	}
-
-	#Finish(cargs, commit) {
-		if (this.#reopened.findIndex(e => IsSame(e, cargs[2])) < 0){
-			this.closed.push({
-				hash: cargs[2].replace(/(\'|#)/g, ''),
-				revision: this.revision,
-				commit: commit
-			});
 		}
 	}
 
@@ -285,10 +342,10 @@ class Issue {
 							this.#SetOwner(c);
 							return true;
 						case 'new': //新規服課題
-							this.#NewSubIssue(c, cargs);
+							this.#NewSub(c.hash, c.message.slice(10));
 							break;
 						case 'delete': //削除済み副課題
-							this.deleted.push(cargs[2]);
+							this.#DeleteSub(cargs[2]);
 							break;
 						case 'title': //課題タイトル
 							if (!this.currentTitle) {
@@ -311,10 +368,10 @@ class Issue {
 							this.#Super(c, cargs);
 							break;
 						case 'finish': //課題完了
-							this.#Finish(cargs, c);
+							this.#CloseSub(cargs[2], c.hash);
 							break;
 						case 'reopen': //課題再開
-							this.#reopened.push(cargs[2]);
+							this.#OpenSub(cargs[2]);
 						 	break;
 						default:
 							vscode.window.showErrorMessage(
@@ -324,7 +381,7 @@ class Issue {
 					break;
 				case 'Merge': //merge=finish
 					if (backwordCompatible) {
-						this.#Finish(cargs);
+						this.#CloseSub(cargs[2]);
 					}
 					break;
 				default: //コマンドではないコミットのコメントはただのコメント
@@ -335,13 +392,7 @@ class Issue {
 		});
 
 		//closedからラベルがない(=dits管理外)要素を除去
-		var newClosed = [];
-		this.closed.forEach(e => {
-			if (e.label) {
-				newClosed.push(e);
-			}
-		});
-		this.closed = newClosed;
+		this.#IgnoreUnlabeled();
 
 		if (!this.currentTitle) {
 			//カレントISSUEのタイトルがないときはブランチ名を設定しておく
@@ -398,12 +449,12 @@ exports.DitsRepository = function () {
 
 			var note = '# Release note\n\n';
 			var r = null;
-			this.issue.closed.forEach(e => {
+			this.issue.GetClosedList().forEach(e => {
 				if (r != e.revision) {
 					r = e.revision;
 					note += `## ${r}\n`;
 				}
-				note += `* ${e.label}\n`;
+				note += `* ${e.title}\n`;
 			});
 			fs.writeFileSync(`${this.currentPath}/RELEASE.md`, note, 'utf8');
 			this.git.Do(['add', 'RELEASE.md']);
@@ -497,7 +548,7 @@ exports.DitsRepository = function () {
 
 		if (this.git.Do(command)) {
 			if (!reopen) {
-				this.git.CommitEmpty(`.dits open ${ticket.label}`);
+				this.git.CommitEmpty(`.dits open ${ticket.title}`);
 				this.git.CommitEmpty(
 					'.dits super ' +
 					this.issue.currentBranch + ' ' +
@@ -509,7 +560,7 @@ exports.DitsRepository = function () {
 		vscode.commands.executeCommand('dits.refresh');
 	}
 	this.Finish = function () {
-		if (this.issue.sub.GetLength()) {
+		if (this.issue.GetProgress().open) {
 			vscode.window.showErrorMessage(
 				'There are subIssues. First, Delete or Finish them.');
 			return;
@@ -519,6 +570,7 @@ exports.DitsRepository = function () {
 				this.git.Do([
 					'merge',
 					'--no-ff',
+					'--no-commit',
 					this.issue.currentBranch]) &&
 				this.git.CommitEmpty(`.dits finish ${this.issue.currentBranch}`) &&
 				this.git.Do(['branch', '-D', this.issue.currentBranch]) &&
@@ -545,7 +597,7 @@ exports.DitsRepository = function () {
 		}
 	}
 	this.Delete = async function () {
-		if (this.issue.sub.GetLength()) {
+		if (this.issue.GetProgress().open) {
 			vscode.window.showErrorMessage(
 				'There are subIssues. First, Delete or Finish them.');
 			return;
@@ -636,7 +688,7 @@ exports.DitsRepository = function () {
 		}, '', 'Message to commit "all"');
 	}
 	this.Reopen = function (target) {
-		const fc = this.git.GetFullCommit(target.commit.hash);
+		const fc = this.git.GetFullCommit(target.closedAt);
 		if (!fc) {
 			//取得できなかった
 			return;
@@ -654,7 +706,7 @@ exports.DitsRepository = function () {
 
 	/////アクセサ
 	this.GetSub = function () {
-		return this.issue.sub.GetList();
+		return this.issue.GetLivingList();
 	}
 	this.GetLog = function () {
 		return this.issue.log;
@@ -673,16 +725,13 @@ exports.DitsRepository = function () {
 		//データ生成
 		return {
 			title: this.issue.currentTitle,
-			progress: {
-				open: this.issue.sub.GetLength(),
-				closed: this.issue.closed.length
-			},
+			progress: this.issue.GetProgress(),
 			owner: owner,
 			super: this.issue.super
 		};
 	}
 	this.GetClosedSub = function () {
-		return this.issue.closed;
+		return this.issue.GetClosedList();
 	}
 
 
