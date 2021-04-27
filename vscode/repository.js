@@ -220,7 +220,7 @@ class Entry {
 		this.revision = rev;
 	};
 	Delete() { this.#Set(3); };
-	MarkIgnore() { if (!this.title) { this.#Set(4); } };
+	MarkIgnore() { if (!this.title) { this.#state = 4; } };
 	IsNew() { return !this.#state; }
 	IsOpened() { return this.#state == 1; }
 	IsClosed() { return this.#state == 2;; }
