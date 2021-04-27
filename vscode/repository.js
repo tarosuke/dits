@@ -201,9 +201,6 @@ class Entry {
 	#state = 0; //0:new, 1:opened, 2:closed, 3:dereted
 	#Set(s) {
 		if (this.#state) {
-			if (dogfoodingDebug) {
-				vscode.window.showInformationMessage(`state change ignored:${this.#state}->${s}:${this.title}`);
-			}
 			return;
 		}
 		this.#state = s;
@@ -213,7 +210,7 @@ class Entry {
 	}
 	New(hash, title) {
 		this.title = title;
-		this.hash = hash;
+		this.hash = hash.replace(/^#/, '');
 	};
 	Open() { this.#Set(1); };
 	Close(at, rev) {
@@ -262,8 +259,7 @@ class Issue {
 	};
 	#OpenSub(hash) { this.#GetSub(hash).Open(); };
 	#CloseSub(hash, closedAt) {
-		var t = this.#GetSub(hash)
-		t.Close(closedAt, this.revision);
+		this.#GetSub(hash).Close(closedAt, this.revision);
 	};
 	#DeleteSub(hash) { this.#GetSub(hash).Delete(); };
 	#IgnoreUnlabeled() {
@@ -384,7 +380,7 @@ class Issue {
 					break;
 				case 'Merge': //merge=finish
 					if (backwordCompatible) {
-						this.#CloseSub(cargs[2], c.hash);
+						this.#CloseSub(cargs[2].slice(1, -1), c.hash);
 					}
 					break;
 				default: //コマンドではないコミットのコメントはただのコメント
