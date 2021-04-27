@@ -603,6 +603,7 @@ exports.DitsRepository = function () {
 				this.git.Do([
 					'merge',
 					'--no-ff',
+					'--no-commit',
 					this.issue.currentBranch]) &&
 				this.git.CommitEmpty(`.dits finish ${this.issue.currentBranch}`) &&
 				this.git.Do(['branch', '-D', this.issue.currentBranch]) &&
