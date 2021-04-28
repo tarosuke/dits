@@ -22,11 +22,28 @@ function IsSame(aa, bb) {
 //コミット
 class Commit{
 	hash;
+	supers;
+	owner;
 	message;
-	constructor(hash, message) {
-		this.hash = hash;
+
+	constructor(hash, message = null) {
+		this.hash = hash.replace(/^#/, '');
+		this.supers = [];
 		this.message = message;
 	};
+	AddSuper(s) {
+		this.supers.push(s);
+	};
+	SetOwner(o) {
+		this.owner = o;
+	};
+	AddMessage(m) {
+		if (this.message) {
+			this.message += '\n' + m;
+		} else {
+			this.message = m.trim();
+		}
+	}
 };
 
 //コミットのリスト
@@ -46,6 +63,9 @@ class Commits {
 	}
 	GetLength() {
 		return this.#list.length;
+	}
+	Find(hash) {
+		return this.#list.find(e => IsSame(hash, e.hash));
 	}
 };
 
@@ -69,11 +89,73 @@ class BranchInfo {
 class Git {
 	#path;
 	#isRemote;
+	#commits = new Commits;
+	#branchInfo = new BranchInfo;
+
+	//ブランチ情報取得
+	#LoadBranchInfo() {
+		const b = this.Do(['branch']).trim();;
+		if (!b) {
+			return; //failed
+		}
+
+		for (let item of b.split('\n')) {
+			const i = item.trim().split(' ');
+			if (i[0] === '*') {
+				this.#branchInfo.AddCurrent(i[1].trim());
+			} else {
+				this.#branchInfo.Add(i[0].trim());
+			}
+		}
+	}
+
+	//ログ読み込み
+	#LoadLog() {
+		const rawData = this.Do([
+			'log',
+			'--first-parent',
+			'--pretty=raw']);
+		if (!rawData) {
+			return;
+		}
+
+		var commit;
+		rawData.split('\n').forEach(line => {
+			const token = line.split(' ');
+			switch (token[0]) {
+				case 'commit':
+					if (commit) {
+						//commitをcommitsへ追加
+						this.#commits.Add(commit);
+					}
+					commit = new Commit(token[1]);
+					break;
+				case 'parent':
+					commit.AddSuper(token[1]);
+					break;
+				case 'author':
+					commit.SetOwner(line.slice(7, -17));
+					break;
+				case 'tree':
+				case 'committer':
+					break;
+				default:
+					if (line && 4 < line.length) {
+						commit.AddMessage(line.slice(4));
+					}
+					break;
+			}
+		});
+	};
+
 	constructor(workingPath) {
 		this.#path = workingPath;
 
 		//リモートの有無を確認
 		this.#isRemote = 0 < this.Do(['remote']).split('\n').length;
+
+		this.#LoadLog();
+		this.#LoadBranchInfo();
 	}
 
 	//Git呼び出し
@@ -104,90 +186,17 @@ class Git {
 
 	//現ブランチのログを取得
 	GetLog() {
-		//ログ取得(フルサイズ、一行)
-		const log = this.Do([
-			'log',
-			'--oneline',
-			'--no-decorate',
-			'--first-parent',
-			'--no-abbrev-commit']);
-		if (!log) {
-			return; //failed
-		}
-
-		//パースしてCommitへ変換
-		const commits = new Commits();
-		for (var item of log.split('\n')) {
-			if (item.length) {
-				const tokens = item.split(' ');
-				const hashLen = tokens[0].length;
-
-				commits.Add(new Commit(tokens[0], item.slice(hashLen).trim()));
-			}
-		}
-
-		return commits;
+		return this.#commits;
 	};
 
 	//ブランチ情報取得
 	GetBranchInfo() {
-		const b = this.Do(['branch']).trim();;
-		if (!b) {
-			return; //failed
-		}
-
-		var bi = new BranchInfo;
-		for (let item of b.split('\n')) {
-			const i = item.trim().split(' ');
-			if (i[0] === '*') {
-				bi.AddCurrent(i[1].trim());
-			} else {
-				bi.Add(i[0].trim());
-			}
-		}
-
-		return bi;
+		return this.#branchInfo;
 	}
 
 	//フルコミット情報取得
-	GetFullCommit(hash) {
-		const rawData = this.Do(['log', '--no-walk', '--pretty=raw', hash]);
-		if (!rawData) {
-			return;
-		}
-		var result = {
-			hash: null,
-			parents: [],
-			owner: null,
-			message: null
-		};
-		rawData.split('\n').forEach(line => {
-			const token = line.split(' ');
-			switch (token[0]) {
-				case 'commit':
-					result.hash = token[1];
-					break;
-				case 'parent':
-					result.parents.push(token[1]);
-					break;
-				case 'author':
-					result.owner = line.slice(7, -17);
-					break;
-				case 'tree':
-				case 'committer':
-					break;
-				default:
-					if (line && 4 < line.length) {
-						if (!result.message) {
-							result.message = line.slice(4);
-						} else {
-							result.message += '\n' + line.slice(4);
-						}
-					}
-					break;
-			}
-		});
-		return result;
+	FindCommit(hash) {
+		return this.#commits.Find(hash);
 	}
 };
 
@@ -650,7 +659,7 @@ exports.DitsRepository = function () {
 		}, '', 'Message to commit "all"');
 	}
 	this.Reopen = function (target) {
-		const fc = this.git.GetFullCommit(target.closedAt);
+		const fc = this.git.FindCommit(target.closedAt);
 		if (!fc) {
 			//取得できなかった
 			return;
