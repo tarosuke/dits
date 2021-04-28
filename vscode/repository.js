@@ -86,6 +86,9 @@ class BranchInfo {
 class Git {
 	#path;
 	#isRemote;
+	#commits = new Commits;
+	#branchInfo = new BranchInfo;
+
 	constructor(workingPath) {
 		this.#path = workingPath;
 
@@ -130,14 +133,13 @@ class Git {
 		}
 
 		var commit;
-		var commits = new Commits;
 		rawData.split('\n').forEach(line => {
 			const token = line.split(' ');
 			switch (token[0]) {
 				case 'commit':
 					if (commit) {
 						//commitをcommitsへ追加
-						commits.Add(commit);
+						this.#commits.Add(commit);
 					}
 					commit = new Commit(token[1]);
 					break;
@@ -157,7 +159,7 @@ class Git {
 					break;
 			}
 		});
-		return commits;
+		return this.#commits;
 	};
 
 	//ブランチ情報取得
@@ -167,17 +169,16 @@ class Git {
 			return; //failed
 		}
 
-		var bi = new BranchInfo;
 		for (let item of b.split('\n')) {
 			const i = item.trim().split(' ');
 			if (i[0] === '*') {
-				bi.AddCurrent(i[1].trim());
+				this.#branchInfo.AddCurrent(i[1].trim());
 			} else {
-				bi.Add(i[0].trim());
+				this.#branchInfo.Add(i[0].trim());
 			}
 		}
 
-		return bi;
+		return this.#branchInfo;
 	}
 
 	//フルコミット情報取得
