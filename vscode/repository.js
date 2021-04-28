@@ -597,13 +597,13 @@ exports.DitsRepository = function () {
 		}
 	}
 	this.DeleteSub = async function (v) {
-		if (!v.notOpened) {
+		if (v.IsOpened()) {
 			vscode.window.showErrorMessage(
-				`Issue ${v.label} is opened already. First, Open it.`);
+				`Issue ${v.title} is opened already. First, Open it.`);
 			return;
 		}
 		const choice = await vscode.window.showInformationMessage(
-			`delete ${v.label}?`, 'yes', 'no');
+			`delete ${v.title}?`, 'yes', 'no');
 		if (choice === 'yes') {
 			this.git.CommitEmpty(`.dits delete #${v.hash}`);
 			vscode.commands.executeCommand('dits.refresh');
