@@ -22,11 +22,24 @@ function IsSame(aa, bb) {
 //コミット
 class Commit{
 	hash;
+	supers;
+	owner;
 	message;
-	constructor(hash, message) {
+
+	constructor(hash, message = '') {
 		this.hash = hash;
+		this.supers = [];
 		this.message = message;
 	};
+	AddSuper(s) {
+		this.supers.push(s);
+	};
+	SetOwner(o) {
+		this.owner = o;
+	};
+	AddMessage(m) {
+		message += m;
+	}
 };
 
 //コミットのリスト
