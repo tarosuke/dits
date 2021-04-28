@@ -239,14 +239,14 @@ class Issue {
 	super;
 
 	//副課題リスト
-	newSub = [];
+	#sub = [];
 	#GetSub(hash) {
-		var t = this.newSub.find(i => IsSame(hash, i.hash));
+		var t = this.#sub.find(i => IsSame(hash, i.hash));
 		if (t) {
 			return t;
 		}
 		t = new Entry(hash);
-		this.newSub.push(t);
+		this.#sub.push(t);
 		return t;
 	}
 	#NewSub(hash, title) {
@@ -263,11 +263,11 @@ class Issue {
 	};
 	#DeleteSub(hash) { this.#GetSub(hash).Delete(); };
 	#IgnoreUnlabeled() {
-		this.newSub.forEach(e => e.MarkIgnore());
+		this.#sub.forEach(e => e.MarkIgnore());
 	}
 	GetProgress() {
 		var p = { closed: 0, open: 0 };
-		this.newSub.forEach(e => {
+		this.#sub.forEach(e => {
 			if (!e.IsDeleted()) {
 				if (e.IsClosed()) {
 					p.closed++;
@@ -280,7 +280,7 @@ class Issue {
 	}
 	GetLivingList() {
 		var t = [];
-		this.newSub.forEach(e => {
+		this.#sub.forEach(e => {
 			if (e.IsNew() || e.IsOpened()){
 				//追加
 				t.push(e);
@@ -290,7 +290,7 @@ class Issue {
 	}
 	GetClosedList() {
 		var t = [];
-		this.newSub.forEach(e => {
+		this.#sub.forEach(e => {
 			if (e.IsClosed()) {
 				//追加
 				t.push(e);
