@@ -459,20 +459,8 @@ exports.DitsRepository = function () {
 			this.git.Do(['add', 'RELEASE.md']);
 			this.git.Do(['commit', '--amend', `-m ${commitMessage}`]);
 
-			vscode.window.withProgress({
-				location: vscode.ProgressLocation.Notification,
-				title: 'Generating release tag...',
-				cancellable: false
-			}, (progress, token) => {
-				const p = new Promise((resolve, reject) => {
-					progress.report({ increment: 0 });
-					this.git.Do(['tag', value]);
-					this.git.DoR(['push', '--tags']);
-					progress.report({ increment: 100 });
-					resolve();
-				});
-				return p;
-			});
+			this.git.Do(['tag', value]);
+			this.git.DoR(['push', '--tags']);
 		});
 	}
 	this.NewChild = async function () { //副課題追加
@@ -502,41 +490,28 @@ exports.DitsRepository = function () {
 		});
 	}
 	this.pushSubIssue = function(branchName){
-		vscode.window.withProgress({
-			location: vscode.ProgressLocation.Notification,
-			title: 'syncing remote',
-			cancellable: false
-		}, (progress, token) => {
-			progress.report({ increment: 0 });
-
-			const p = new Promise((resolve, reject) => {
-				if (!this.git.DoR([
-					'push',
-					'--set-upstream',
-					'origin',
-					branchName],
-					true)) {
-					vscode.window.showWarningMessage(
-						`Issue ${ticket.label} is already exsits.`);
-					this.git.Do([
-						'checkout',
-						this.issue.currentBranch]);
-					this.git.Do([
-						'branch',
-						'-D',
-						branchName]);
-					this.git.DoR(['fetch']);
-					this.git.DoR([
-						'branch',
-						branchName,
-						`origin/${branchName}`]);
-				}
-				progress.report({ increment: 100 });
-				resolve();
-				vscode.commands.executeCommand('dits.refresh');
-			});
-			return p;
-		})
+		if (!this.git.DoR([
+			'push',
+			'--set-upstream',
+			'origin',
+			branchName],
+			true)) {
+			vscode.window.showWarningMessage(
+				`Issue ${ticket.label} is already exsits.`);
+			this.git.Do([
+				'checkout',
+				this.issue.currentBranch]);
+			this.git.Do([
+				'branch',
+				'-D',
+				branchName]);
+			this.git.DoR(['fetch']);
+			this.git.DoR([
+				'branch',
+				branchName,
+				`origin/${branchName}`]);
+		}
+		vscode.commands.executeCommand('dits.refresh');
 	}
 	this.OpenChild = async function (ticket) { //副課題を開く
 		const branchName = `#${ticket.hash}`;
@@ -609,28 +584,16 @@ exports.DitsRepository = function () {
 		const choice = await vscode.window.showInformationMessage(
 			`delete ${this.issue.currentTitle}?`, 'yes', 'no');
 		if (choice === 'yes') {
-			vscode.window.withProgress({
-				location: vscode.ProgressLocation.Notification,
-				title: 'Deleting issue',
-				cancellable: false
-			}, (progress, token) => {
-				const p = new Promise((resolve, reject) => {
-					progress.report({ increment: 0 });
-					if (this.git.Do(['checkout', this.issue.super.branch])) {
-						this.git.CommitEmpty(
-							`.dits delete ${this.issue.currentBranch}`);
-						this.git.Do(['branch', '-D', this.issue.currentBranch]);
-						this.git.DoR([
-							'push',
-							'origin',
-							`:${this.issue.currentBranch}`]);
-						vscode.commands.executeCommand('dits.refresh');
-					}
-					progress.report({ increment: 100 });
-					resolve();
-				});
-				return p;
-			});
+			if (this.git.Do(['checkout', this.issue.super.branch])) {
+				this.git.CommitEmpty(
+					`.dits delete ${this.issue.currentBranch}`);
+				this.git.Do(['branch', '-D', this.issue.currentBranch]);
+				this.git.DoR([
+					'push',
+					'origin',
+					`:${this.issue.currentBranch}`]);
+			}
+			vscode.commands.executeCommand('dits.refresh');
 		}
 	}
 	this.DeleteSub = async function (v) {
