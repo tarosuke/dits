@@ -64,6 +64,9 @@ class Commits {
 	GetLength() {
 		return this.#list.length;
 	}
+	Find(hash) {
+		return this.#list.find(e => IsSame(hash, e.hash));
+	}
 };
 
 //ブランチ情報
@@ -192,44 +195,8 @@ class Git {
 	}
 
 	//フルコミット情報取得
-	GetFullCommit(hash) {
-		const rawData = this.Do(['log', '--no-walk', '--pretty=raw', hash]);
-		if (!rawData) {
-			return;
-		}
-		var result = {
-			hash: null,
-			parents: [],
-			owner: null,
-			message: null
-		};
-		rawData.split('\n').forEach(line => {
-			const token = line.split(' ');
-			switch (token[0]) {
-				case 'commit':
-					result.hash = token[1];
-					break;
-				case 'parent':
-					result.parents.push(token[1]);
-					break;
-				case 'author':
-					result.owner = line.slice(7, -17);
-					break;
-				case 'tree':
-				case 'committer':
-					break;
-				default:
-					if (line && 4 < line.length) {
-						if (!result.message) {
-							result.message = line.slice(4);
-						} else {
-							result.message += '\n' + line.slice(4);
-						}
-					}
-					break;
-			}
-		});
-		return result;
+	FindCommit(hash) {
+		return this.#commits.Find(hash);
 	}
 };
 
@@ -692,7 +659,7 @@ exports.DitsRepository = function () {
 		}, '', 'Message to commit "all"');
 	}
 	this.Reopen = function (target) {
-		const fc = this.git.GetFullCommit(target.closedAt);
+		const fc = this.git.FindCommit(target.closedAt);
 		if (!fc) {
 			//取得できなかった
 			return;
