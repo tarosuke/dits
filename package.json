@@ -121,7 +121,7 @@
 			"dits": [
 				{
 					"id": "workspaces",
-					"name": "WORKSPACE"
+					"name": "WORKSPACEs"
 				},
 				{
 					"id": "issue",
@@ -134,12 +134,12 @@
 				},
 				{
 					"id": "children",
-					"name": "SUBISSUE",
+					"name": "SUBISSUEs",
 					"icon": "#(issues)"
 				},
 				{
 					"id": "closedChildren",
-					"name": "CLOSED SUBISSUE",
+					"name": "CLOSED SUBISSUEs",
 					"visibility": "collapsed",
 					"icon": "$(issue-closed)"
 				}
