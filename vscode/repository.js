@@ -26,7 +26,7 @@ class Commit{
 	owner;
 	message;
 
-	constructor(hash, message = '') {
+	constructor(hash, message = null) {
 		this.hash = hash;
 		this.supers = [];
 		this.message = message;
@@ -38,7 +38,11 @@ class Commit{
 		this.owner = o;
 	};
 	AddMessage(m) {
-		message += m;
+		if (this.message) {
+			this.message += '\n' + m;
+		} else {
+			this.message = m;
+		}
 	}
 };
 
@@ -117,28 +121,42 @@ class Git {
 
 	//現ブランチのログを取得
 	GetLog() {
-		//ログ取得(フルサイズ、一行)
-		const log = this.Do([
+		const rawData = this.Do([
 			'log',
-			'--oneline',
-			'--no-decorate',
 			'--first-parent',
-			'--no-abbrev-commit']);
-		if (!log) {
-			return; //failed
+			'--pretty=raw']);
+		if (!rawData) {
+			return;
 		}
 
-		//パースしてCommitへ変換
-		const commits = new Commits();
-		for (var item of log.split('\n')) {
-			if (item.length) {
-				const tokens = item.split(' ');
-				const hashLen = tokens[0].length;
-
-				commits.Add(new Commit(tokens[0], item.slice(hashLen).trim()));
+		var commit;
+		var commits = new Commits;
+		rawData.split('\n').forEach(line => {
+			const token = line.split(' ');
+			switch (token[0]) {
+				case 'commit':
+					if (commit) {
+						//commitをcommitsへ追加
+						commits.Add(commit);
+					}
+					commit = new Commit(token[1]);
+					break;
+				case 'parent':
+					commit.AddSuper(token[1]);
+					break;
+				case 'author':
+					commit.SetOwner(line.slice(7, -17));
+					break;
+				case 'tree':
+				case 'committer':
+					break;
+				default:
+					if (line && 4 < line.length) {
+						commit.AddMessage(line.slice(4));
+					}
+					break;
 			}
-		}
-
+		});
 		return commits;
 	};
 
