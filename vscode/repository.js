@@ -207,7 +207,7 @@ class Entry {
 	hash;
 	title;
 	closedAt;
-	#state = 0; //0:new, 1:opened, 2:closed, 3:dereted
+	#state = 0; //0:new, 1:opened, 2:closed, 3:dereted 4:ignored
 	#Set(s) {
 		if (this.#state) {
 			return;
