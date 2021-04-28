@@ -214,7 +214,10 @@ class ClosedChildrenTreeviewProvider {
 	}
 	getTreeItem(c) {
 		return {
-			label: c.title,
+			label: {
+				label: c.title,
+				highlights: [[0, !c.revision ? c.title.length : 0]]
+			},
 			hash: c.hash,
 			closedAt: c.closedAt
 		};
