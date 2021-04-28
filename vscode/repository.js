@@ -86,11 +86,73 @@ class BranchInfo {
 class Git {
 	#path;
 	#isRemote;
+	#commits = new Commits;
+	#branchInfo = new BranchInfo;
+
+	//ブランチ情報取得
+	#LoadBranchInfo() {
+		const b = this.Do(['branch']).trim();;
+		if (!b) {
+			return; //failed
+		}
+
+		for (let item of b.split('\n')) {
+			const i = item.trim().split(' ');
+			if (i[0] === '*') {
+				this.#branchInfo.AddCurrent(i[1].trim());
+			} else {
+				this.#branchInfo.Add(i[0].trim());
+			}
+		}
+	}
+
+	//ログ読み込み
+	#LoadLog() {
+		const rawData = this.Do([
+			'log',
+			'--first-parent',
+			'--pretty=raw']);
+		if (!rawData) {
+			return;
+		}
+
+		var commit;
+		rawData.split('\n').forEach(line => {
+			const token = line.split(' ');
+			switch (token[0]) {
+				case 'commit':
+					if (commit) {
+						//commitをcommitsへ追加
+						this.#commits.Add(commit);
+					}
+					commit = new Commit(token[1]);
+					break;
+				case 'parent':
+					commit.AddSuper(token[1]);
+					break;
+				case 'author':
+					commit.SetOwner(line.slice(7, -17));
+					break;
+				case 'tree':
+				case 'committer':
+					break;
+				default:
+					if (line && 4 < line.length) {
+						commit.AddMessage(line.slice(4));
+					}
+					break;
+			}
+		});
+	};
+
 	constructor(workingPath) {
 		this.#path = workingPath;
 
 		//リモートの有無を確認
 		this.#isRemote = 0 < this.Do(['remote']).split('\n').length;
+
+		this.#LoadLog();
+		this.#LoadBranchInfo();
 	}
 
 	//Git呼び出し
@@ -121,63 +183,12 @@ class Git {
 
 	//現ブランチのログを取得
 	GetLog() {
-		const rawData = this.Do([
-			'log',
-			'--first-parent',
-			'--pretty=raw']);
-		if (!rawData) {
-			return;
-		}
-
-		var commit;
-		var commits = new Commits;
-		rawData.split('\n').forEach(line => {
-			const token = line.split(' ');
-			switch (token[0]) {
-				case 'commit':
-					if (commit) {
-						//commitをcommitsへ追加
-						commits.Add(commit);
-					}
-					commit = new Commit(token[1]);
-					break;
-				case 'parent':
-					commit.AddSuper(token[1]);
-					break;
-				case 'author':
-					commit.SetOwner(line.slice(7, -17));
-					break;
-				case 'tree':
-				case 'committer':
-					break;
-				default:
-					if (line && 4 < line.length) {
-						commit.AddMessage(line.slice(4));
-					}
-					break;
-			}
-		});
-		return commits;
+		return this.#commits;
 	};
 
 	//ブランチ情報取得
 	GetBranchInfo() {
-		const b = this.Do(['branch']).trim();;
-		if (!b) {
-			return; //failed
-		}
-
-		var bi = new BranchInfo;
-		for (let item of b.split('\n')) {
-			const i = item.trim().split(' ');
-			if (i[0] === '*') {
-				bi.AddCurrent(i[1].trim());
-			} else {
-				bi.Add(i[0].trim());
-			}
-		}
-
-		return bi;
+		return this.#branchInfo;
 	}
 
 	//フルコミット情報取得
