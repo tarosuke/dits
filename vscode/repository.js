@@ -89,41 +89,25 @@ class Git {
 	#commits = new Commits;
 	#branchInfo = new BranchInfo;
 
-	constructor(workingPath) {
-		this.#path = workingPath;
-
-		//リモートの有無を確認
-		this.#isRemote = 0 < this.Do(['remote']).split('\n').length;
-	}
-
-	//Git呼び出し
-	Do(args, supressError = false) {
-		if (!this.#path) {
-			return;
+	//ブランチ情報取得
+	#LoadBranchInfo() {
+		const b = this.Do(['branch']).trim();;
+		if (!b) {
+			return; //failed
 		}
-		var out = child_process.spawnSync(
-			'git', args, { cwd: this.#path });
-		if (out.status) {
-			if (!supressError) {
-				vscode.window.showErrorMessage(out.stderr.toString());
+
+		for (let item of b.split('\n')) {
+			const i = item.trim().split(' ');
+			if (i[0] === '*') {
+				this.#branchInfo.AddCurrent(i[1].trim());
+			} else {
+				this.#branchInfo.Add(i[0].trim());
 			}
-			return;
-		}
-		return out.output.toString().slice(1, -1);
-	};
-	DoR(args, supressError = false) {
-		if (this.#isRemote) {
-			return this.Do(args, supressError);
 		}
 	}
 
-	//メッセージだけの空コミット
-	CommitEmpty(message) {
-		return this.Do(['commit', '--allow-empty', '-m', message]);
-	};
-
-	//現ブランチのログを取得
-	GetLog() {
+	//ログ読み込み
+	#LoadLog() {
 		const rawData = this.Do([
 			'log',
 			'--first-parent',
@@ -159,25 +143,51 @@ class Git {
 					break;
 			}
 		});
+	};
+
+	constructor(workingPath) {
+		this.#path = workingPath;
+
+		//リモートの有無を確認
+		this.#isRemote = 0 < this.Do(['remote']).split('\n').length;
+
+		this.#LoadLog();
+		this.#LoadBranchInfo();
+	}
+
+	//Git呼び出し
+	Do(args, supressError = false) {
+		if (!this.#path) {
+			return;
+		}
+		var out = child_process.spawnSync(
+			'git', args, { cwd: this.#path });
+		if (out.status) {
+			if (!supressError) {
+				vscode.window.showErrorMessage(out.stderr.toString());
+			}
+			return;
+		}
+		return out.output.toString().slice(1, -1);
+	};
+	DoR(args, supressError = false) {
+		if (this.#isRemote) {
+			return this.Do(args, supressError);
+		}
+	}
+
+	//メッセージだけの空コミット
+	CommitEmpty(message) {
+		return this.Do(['commit', '--allow-empty', '-m', message]);
+	};
+
+	//現ブランチのログを取得
+	GetLog() {
 		return this.#commits;
 	};
 
 	//ブランチ情報取得
 	GetBranchInfo() {
-		const b = this.Do(['branch']).trim();;
-		if (!b) {
-			return; //failed
-		}
-
-		for (let item of b.split('\n')) {
-			const i = item.trim().split(' ');
-			if (i[0] === '*') {
-				this.#branchInfo.AddCurrent(i[1].trim());
-			} else {
-				this.#branchInfo.Add(i[0].trim());
-			}
-		}
-
 		return this.#branchInfo;
 	}
 
