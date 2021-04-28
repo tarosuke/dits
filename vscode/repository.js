@@ -27,7 +27,7 @@ class Commit{
 	message;
 
 	constructor(hash, message = null) {
-		this.hash = hash;
+		this.hash = hash.replace(/^#/, '');
 		this.supers = [];
 		this.message = message;
 	};
@@ -41,7 +41,7 @@ class Commit{
 		if (this.message) {
 			this.message += '\n' + m;
 		} else {
-			this.message = m;
+			this.message = m.trim();
 		}
 	}
 };
