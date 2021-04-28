@@ -33,8 +33,7 @@
 			"title": "Open subissue"
 		},{
 			"command": "dits.release",
-			"title": "Prepare release",
-			"icon": "$(check-all)"
+			"title": "Prepare release"
 		},{
 			"command": "dits.finish",
 			"title": "Finish this issue",
@@ -80,8 +79,7 @@
 				},
 				{
 					"command": "dits.release",
-					"when": "view == issue",
-					"group": "navigation"
+					"when": "view == closedChildren"
 				},
 				{
 					"command": "dits.newChild",
