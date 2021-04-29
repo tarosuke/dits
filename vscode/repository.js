@@ -7,6 +7,7 @@ const fs = require("fs");
 
 //後方互換性設定
 var backwordCompatible = false;
+var updateFrom = 'master'
 
 
 //ハッシュ／ブランチ比較
@@ -333,6 +334,8 @@ class Issue {
 		//設定の読み込み
 		backwordCompatible =
 			vscode.workspace.getConfiguration('dits').get('backwordCompatible');
+		updateFrom =
+			vscode.workspace.getConfiguration('dits').get('updateFrom');
 
 		this.#branchInfo = branchInfo;
 		this.currentBranch = branchInfo.current;
@@ -690,6 +693,29 @@ class DitsRepository{
 		}
 		this.git.Do(['revert', target.hash]);
 		vscode.commands.executeCommand('dits.refresh');
+	}
+	Update() {
+		let options = {
+			prompt: "Update from: ",
+			placeHolder: "(merge form to update)",
+			value: updateFrom
+		}
+
+		vscode.window.showInputBox(options).then((value) => {
+			if (!value) {
+				return;
+			}
+			value.trim();
+			if (!value.length) {
+				return;
+			}
+
+			this.git.Do([
+				'merge',
+				'--no-ff',
+				'-m', `update from ${updateFrom}`,
+				updateFrom]);
+		});
 	}
 
 

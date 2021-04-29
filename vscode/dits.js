@@ -95,6 +95,10 @@ function activate(context) {
 		vscode.commands.registerCommand('dits.revert', (v) => {
 			this.repository.Revert(v);
 		}));
+	context.subscriptions.push(
+		vscode.commands.registerCommand('dits.update', () => {
+			this.repository.Update();
+		}));
 }
 
 // this method is called when your extension is deactivated
