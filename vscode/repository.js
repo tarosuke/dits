@@ -413,319 +413,316 @@ class Issue {
 
 
 class DitsRepository{
-	constructor() {
-		/////インターフェイス
-		this.LoadBranch = function () { //ブランチの読み込み
-			if (!this.currentPath) {
+	/////インターフェイス
+	LoadBranch() { //ブランチの読み込み
+		if (!this.currentPath) {
+			return;
+		}
+		this.git = new Git(this.currentPath);
+		this.issue = new Issue(this.git.GetLog(), this.git.GetBranchInfo());
+	}
+	Release() { //リリース
+		if (!this.currentPath) {
+			return;
+		}
+
+		//仮リビジョン計算
+		rev = this.issue.lastRevision;
+		if (rev) {
+			revs = rev.split('.');
+			revs[2] = parseInt(revs[2]) + 1;
+			rev = `${revs[0]}.${revs[1]}.${revs[2]}`;
+		} else {
+			rev = '0.0.0';
+		}
+
+		let options = {
+			prompt: "Revision: ",
+			placeHolder: "(revision to release)",
+			value: rev
+		}
+
+		vscode.window.showInputBox(options).then((value) => {
+			if (!value) {
 				return;
 			}
-			this.git = new Git(this.currentPath);
-			this.issue = new Issue(this.git.GetLog(), this.git.GetBranchInfo());
-		}
-		this.Release = function () { //リリース
-			if (!this.currentPath) {
+			value.trim();
+			if (!value.length) {
 				return;
 			}
 
-			//仮リビジョン計算
-			rev = this.issue.lastRevision;
-			if (rev) {
-				revs = rev.split('.');
-				revs[2] = parseInt(revs[2]) + 1;
-				rev = `${revs[0]}.${revs[1]}.${revs[2]}`;
-			} else {
-				rev = '0.0.0';
-			}
+			commitMessage = `.dits release ${value}`;
+			this.git.CommitEmpty(commitMessage);
+			vscode.commands.executeCommand('dits.refresh');
 
-			let options = {
-				prompt: "Revision: ",
-				placeHolder: "(revision to release)",
-				value: rev
-			}
-
-			vscode.window.showInputBox(options).then((value) => {
-				if (!value) {
-					return;
+			var note = '# Release note\n\n';
+			var r = null;
+			this.issue.GetClosedList().forEach(e => {
+				if (r != e.revision) {
+					r = e.revision;
+					note += `## ${r}\n`;
 				}
-				value.trim();
-				if (!value.length) {
-					return;
-				}
-
-				commitMessage = `.dits release ${value}`;
-				this.git.CommitEmpty(commitMessage);
-				vscode.commands.executeCommand('dits.refresh');
-
-				var note = '# Release note\n\n';
-				var r = null;
-				this.issue.GetClosedList().forEach(e => {
-					if (r != e.revision) {
-						r = e.revision;
-						note += `## ${r}\n`;
-					}
-					note += `* ${e.title}\n`;
-				});
-				fs.writeFileSync(`${this.currentPath}/RELEASE.md`, note, 'utf8');
-				this.git.Do(['add', 'RELEASE.md']);
-				this.git.Do(['commit', '--amend', `-m ${commitMessage}`]);
-
-				this.git.Do(['tag', value]);
-				this.git.DoR(['push', '--tags']);
+				note += `* ${e.title}\n`;
 			});
+			fs.writeFileSync(`${this.currentPath}/RELEASE.md`, note, 'utf8');
+			this.git.Do(['add', 'RELEASE.md']);
+			this.git.Do(['commit', '--amend', `-m ${commitMessage}`]);
+
+			this.git.Do(['tag', value]);
+			this.git.DoR(['push', '--tags']);
+		});
+	}
+	NewChild() { //副課題追加
+		//入力欄情報
+		let options = {
+			prompt: "Title: ",
+			placeHolder: "(title the new issue)"
 		}
-		this.NewChild = async function () { //副課題追加
-			//入力欄情報
-			let options = {
-				prompt: "Title: ",
-				placeHolder: "(title the new issue)"
+
+		//入力欄生成
+		vscode.window.showInputBox(options).then((value) => {
+			if (!value) {
+				//キャンセル
+				return;
+			}
+			value.trim();
+			if (!value.length) {
+				//入力なし
+				return;
 			}
 
-			//入力欄生成
-			vscode.window.showInputBox(options).then((value) => {
-				if (!value) {
-					//キャンセル
-					return;
-				}
-				value.trim();
-				if (!value.length) {
-					//入力なし
-					return;
-				}
+			//コマンド生成
+			this.git.CommitEmpty(`.dits new ${value}`);
 
-				//コマンド生成
-				this.git.CommitEmpty(`.dits new ${value}`);
-
-				//ブランチ再読込
-				vscode.commands.executeCommand('dits.refresh');
-			});
+			//ブランチ再読込
+			vscode.commands.executeCommand('dits.refresh');
+		});
+	}
+	#PushSubIssue(branchName) {
+		if (!this.git.DoR([
+			'push',
+			'--set-upstream',
+			'origin',
+			branchName],
+			true)) {
+			vscode.window.showWarningMessage(
+				`Issue ${ticket.label} is already exsits.`);
+			this.git.Do([
+				'checkout',
+				this.issue.currentBranch]);
+			this.git.Do([
+				'branch',
+				'-D',
+				branchName]);
+			this.git.DoR(['fetch']);
+			this.git.DoR([
+				'branch',
+				branchName,
+				`origin/${branchName}`]);
 		}
-		this.pushSubIssue = function (branchName) {
-			if (!this.git.DoR([
-				'push',
-				'--set-upstream',
-				'origin',
-				branchName],
-				true)) {
-				vscode.window.showWarningMessage(
-					`Issue ${ticket.label} is already exsits.`);
+		vscode.commands.executeCommand('dits.refresh');
+	}
+	OpenChild(ticket) { //副課題を開く
+		const branchName = `#${ticket.hash}`;
+		const reopen = this.git.GetBranchInfo().IsIn(branchName);
+		const command = !reopen ?
+			['checkout', '-b', branchName] :
+			['checkout', branchName];
+
+		if (this.git.Do(command)) {
+			if (!reopen) {
+				this.git.CommitEmpty(`.dits open ${ticket.title}`);
+				this.git.CommitEmpty(
+					'.dits super ' +
+					this.issue.currentBranch + ' ' +
+					this.issue.currentTitle);
+
+				this.#PushSubIssue(branchName);
+			}
+		}
+		vscode.commands.executeCommand('dits.refresh');
+	}
+	Finish() {
+		if (this.issue.GetProgress().open) {
+			vscode.window.showErrorMessage(
+				'There are subIssues. First, Delete or Finish them.');
+			return;
+		}
+		if (this.issue.super) {
+			if (this.git.Do(['checkout', this.issue.super.branch]) &&
 				this.git.Do([
-					'checkout',
-					this.issue.currentBranch]);
-				this.git.Do([
-					'branch',
-					'-D',
-					branchName]);
-				this.git.DoR(['fetch']);
+					'merge',
+					'--no-ff',
+					'--no-commit',
+					this.issue.currentBranch]) &&
+				this.git.CommitEmpty(`.dits finish ${this.issue.currentBranch}`) &&
+				this.git.Do(['branch', '-D', this.issue.currentBranch]) &&
 				this.git.DoR([
-					'branch',
-					branchName,
-					`origin/${branchName}`]);
-			}
-			vscode.commands.executeCommand('dits.refresh');
-		}
-		this.OpenChild = async function (ticket) { //副課題を開く
-			const branchName = `#${ticket.hash}`;
-			const reopen = this.git.GetBranchInfo().IsIn(branchName);
-			const command = !reopen ?
-				['checkout', '-b', branchName] :
-				['checkout', branchName];
-
-			if (this.git.Do(command)) {
-				if (!reopen) {
-					this.git.CommitEmpty(`.dits open ${ticket.title}`);
-					this.git.CommitEmpty(
-						'.dits super ' +
-						this.issue.currentBranch + ' ' +
-						this.issue.currentTitle);
-
-					this.pushSubIssue(branchName);
-				}
-			}
-			vscode.commands.executeCommand('dits.refresh');
-		}
-		this.Finish = function () {
-			if (this.issue.GetProgress().open) {
-				vscode.window.showErrorMessage(
-					'There are subIssues. First, Delete or Finish them.');
-				return;
-			}
-			if (this.issue.super) {
-				if (this.git.Do(['checkout', this.issue.super.branch]) &&
-					this.git.Do([
-						'merge',
-						'--no-ff',
-						'--no-commit',
-						this.issue.currentBranch]) &&
-					this.git.CommitEmpty(`.dits finish ${this.issue.currentBranch}`) &&
-					this.git.Do(['branch', '-D', this.issue.currentBranch]) &&
-					this.git.DoR([
-						'push', 'origin', `:${this.issue.currentBranch}`])) {
-					vscode.commands.executeCommand('dits.refresh');
-				} else {
-					vscode.window.showErrorMessage(
-						'Failed some operations. Check & Try manually.');
-				}
+					'push', 'origin', `:${this.issue.currentBranch}`])) {
+				vscode.commands.executeCommand('dits.refresh');
 			} else {
 				vscode.window.showErrorMessage(
-					'The super issue has not specified. Try manually.');
+					'Failed some operations. Check & Try manually.');
 			}
+		} else {
+			vscode.window.showErrorMessage(
+				'The super issue has not specified. Try manually.');
 		}
-		this.GoParent = function () {
-			if (this.issue.super) {
-				if (this.git.Do(['checkout', this.issue.super.branch])) {
-					vscode.commands.executeCommand('dits.refresh');
-				}
-			} else {
-				vscode.window.showErrorMessage(
-					'The super issue has not specified. Try manually.');
-			}
-		}
-		this.Delete = async function () {
-			if (this.issue.GetProgress().open) {
-				vscode.window.showErrorMessage(
-					'There are subIssues. First, Delete or Finish them.');
-				return;
-			}
-			if (!this.issue.super) {
-				vscode.window.showErrorMessage(
-					`${this.issue.currentTitle} might not an issue.`);
-				return;
-			}
-			const choice = await vscode.window.showInformationMessage(
-				`delete ${this.issue.currentTitle}?`, 'yes', 'no');
-			if (choice === 'yes') {
-				if (this.git.Do(['checkout', this.issue.super.branch])) {
-					this.git.CommitEmpty(
-						`.dits delete ${this.issue.currentBranch}`);
-					this.git.Do(['branch', '-D', this.issue.currentBranch]);
-					this.git.DoR([
-						'push',
-						'origin',
-						`:${this.issue.currentBranch}`]);
-				}
+	}
+	GoParent() {
+		if (this.issue.super) {
+			if (this.git.Do(['checkout', this.issue.super.branch])) {
 				vscode.commands.executeCommand('dits.refresh');
 			}
+		} else {
+			vscode.window.showErrorMessage(
+				'The super issue has not specified. Try manually.');
 		}
-		this.DeleteSub = async function (v) {
-			if (v.IsOpened()) {
-				vscode.window.showErrorMessage(
-					`Issue ${v.title} is opened already. First, Open it.`);
-				return;
+	}
+	Delete() {
+		if (this.issue.GetProgress().open) {
+			vscode.window.showErrorMessage(
+				'There are subIssues. First, Delete or Finish them.');
+			return;
+		}
+		if (!this.issue.super) {
+			vscode.window.showErrorMessage(
+				`${this.issue.currentTitle} might not an issue.`);
+			return;
+		}
+		const choice = await vscode.window.showInformationMessage(
+			`delete ${this.issue.currentTitle}?`, 'yes', 'no');
+		if (choice === 'yes') {
+			if (this.git.Do(['checkout', this.issue.super.branch])) {
+				this.git.CommitEmpty(
+					`.dits delete ${this.issue.currentBranch}`);
+				this.git.Do(['branch', '-D', this.issue.currentBranch]);
+				this.git.DoR([
+					'push',
+					'origin',
+					`:${this.issue.currentBranch}`]);
 			}
-			const choice = await vscode.window.showInformationMessage(
-				`delete ${v.title}?`, 'yes', 'no');
-			if (choice === 'yes') {
-				this.git.CommitEmpty(`.dits delete #${v.hash}`);
-				vscode.commands.executeCommand('dits.refresh');
-			}
-		}
-		this.Chdir = async function (path) {
-			if (path) {
-				this.currentPath = path;
-				this.LoadBranch();
-				vscode.commands.executeCommand('dits.refresh');
-			}
-		}
-
-
-		this.InputAndDo = function (ToDo, title = '', placeHalder = '') {
-			let options = { prompt: title, placeHolder: placeHalder };
-
-			//入力欄生成
-			vscode.window.showInputBox(options).then((value) => {
-				if (!value) {
-					//キャンセル
-					return;
-				}
-				value.trim();
-				if (!value.length) {
-					//入力なし
-					return;
-				}
-
-				ToDo(value);
-
-				//ブランチ再読込
-				vscode.commands.executeCommand('dits.refresh');
-			});
-		}
-		this.Commit = function () {
-			this.InputAndDo(v => {
-				this.git.CommitEmpty(v);
-			}, '', 'Message to commit "as is"');
-		}
-		this.CommitAll = function () {
-			this.InputAndDo(v => {
-				this.git.Do(['commit', '-a', '-m', v]);
-			}, '', 'Message to commit "all"');
-		}
-		this.Reopen = async function (target) {
-			if (target.revision) {
-				const choice = await vscode.window.showWarningMessage(
-					`issue \'${target.title}\' had be released already. Reopen it?`,
-					'yes', 'no');
-				if (choice == 'no') {
-					return;
-				}
-			}
-			const fc = this.git.FindCommit(target.closedAt);
-			if (!fc) {
-				//取得できなかった
-				vscode.window.showErrorMessage('Something went wrong. Sorry!');
-				return;
-			}
-			const branchName = `#${target.hash}`;
-			this.git.CommitEmpty(`.dits reopen ${branchName}`);
-			this.git.Do(['branch', `${branchName}`, fc.parents[1]]);
-			this.pushSubIssue(branchName);
-		}
-		this.Revert = async function (target) {
-			if (target.revision) {
-				const choice = await vscode.window.showWarningMessage(
-					`issue \'${target.title}\' had be released already. Revert it?`,
-					'yes', 'no');
-				if (choice == 'no') {
-					return;
-				}
-			}
-			this.git.Do(['revert', target.hash]);
 			vscode.commands.executeCommand('dits.refresh');
 		}
+	}
+	DeleteSub(v) {
+		if (v.IsOpened()) {
+			vscode.window.showErrorMessage(
+				`Issue ${v.title} is opened already. First, Open it.`);
+			return;
+		}
+		const choice = await vscode.window.showInformationMessage(
+			`delete ${v.title}?`, 'yes', 'no');
+		if (choice === 'yes') {
+			this.git.CommitEmpty(`.dits delete #${v.hash}`);
+			vscode.commands.executeCommand('dits.refresh');
+		}
+	}
+	Chdir(path) {
+		if (path) {
+			this.currentPath = path;
+			this.LoadBranch();
+			vscode.commands.executeCommand('dits.refresh');
+		}
+	}
 
 
-		/////アクセサ
-		this.GetSub = function () {
-			return this.issue.GetLivingList();
-		}
-		this.GetLog = function () {
-			return this.issue.log;
-		}
-		this.GetIssueInfo = function () {
-			//owner取得
-			owner = null;
-			if (this.issue.ownerCommit) {
-				owner = this.git.Do([
-					'log',
-					'--no-walk',
-					'--pretty=short',
-					this.issue.ownerCommit]).split('\n')[1].slice(8);
+	#InputAndDo(ToDo, title = '', placeHalder = '') {
+		let options = { prompt: title, placeHolder: placeHalder };
+
+		//入力欄生成
+		vscode.window.showInputBox(options).then((value) => {
+			if (!value) {
+				//キャンセル
+				return;
+			}
+			value.trim();
+			if (!value.length) {
+				//入力なし
+				return;
 			}
 
-			//データ生成
-			return {
-				title: this.issue.currentTitle,
-				progress: this.issue.GetProgress(),
-				owner: owner,
-				super: this.issue.super
-			};
+			ToDo(value);
+
+			//ブランチ再読込
+			vscode.commands.executeCommand('dits.refresh');
+		});
+	}
+	Commit() {
+		this.#InputAndDo(v => {
+			this.git.CommitEmpty(v);
+		}, '', 'Message to commit "as is"');
+	}
+	CommitAll() {
+		this.#InputAndDo(v => {
+			this.git.Do(['commit', '-a', '-m', v]);
+		}, '', 'Message to commit "all"');
+	}
+	Reopen(target) {
+		if (target.revision) {
+			const choice = await vscode.window.showWarningMessage(
+				`issue \'${target.title}\' had be released already. Reopen it?`,
+				'yes', 'no');
+			if (choice == 'no') {
+				return;
+			}
 		}
-		this.GetClosedSub = function () {
-			return this.issue.GetClosedList();
+		const fc = this.git.FindCommit(target.closedAt);
+		if (!fc) {
+			//取得できなかった
+			vscode.window.showErrorMessage('Something went wrong. Sorry!');
+			return;
+		}
+		const branchName = `#${target.hash}`;
+		this.git.CommitEmpty(`.dits reopen ${branchName}`);
+		this.git.Do(['branch', `${branchName}`, fc.parents[1]]);
+		this.#PushSubIssue(branchName);
+	}
+	Revert(target) {
+		if (target.revision) {
+			const choice = await vscode.window.showWarningMessage(
+				`issue \'${target.title}\' had be released already. Revert it?`,
+				'yes', 'no');
+			if (choice == 'no') {
+				return;
+			}
+		}
+		this.git.Do(['revert', target.hash]);
+		vscode.commands.executeCommand('dits.refresh');
+	}
+
+
+	/////アクセサ
+	GetSub() {
+		return this.issue.GetLivingList();
+	}
+	GetLog() {
+		return this.issue.log;
+	}
+	GetIssueInfo() {
+		//owner取得
+		owner = null;
+		if (this.issue.ownerCommit) {
+			owner = this.git.Do([
+				'log',
+				'--no-walk',
+				'--pretty=short',
+				this.issue.ownerCommit]).split('\n')[1].slice(8);
 		}
 
+		//データ生成
+		return {
+			title: this.issue.currentTitle,
+			progress: this.issue.GetProgress(),
+			owner: owner,
+			super: this.issue.super
+		};
+	}
+	GetClosedSub() {
+		return this.issue.GetClosedList();
+	}
 
-		/////初期化
-
+	constructor() {
 		//ワークディレクトリのパスを取得
 		if (vscode.workspace.workspaceFolders) {
 			this.currentPath = vscode.workspace.workspaceFolders[0].uri.fsPath;
