@@ -659,11 +659,11 @@ exports.DitsRepository = function () {
 		}, '', 'Message to commit "all"');
 	}
 	this.Reopen = async function (target) {
-		if (!target.revision) {
+		if (target.revision) {
 			const choice = await vscode.window.showWarningMessage(
 				`issue \'${target.title}\' had be released already. Reopen it?`,
 				'yes', 'no');
-			if (choice === 'no') {
+			if (choice == 'no') {
 				return;
 			}
 		}
@@ -678,7 +678,15 @@ exports.DitsRepository = function () {
 		this.git.Do(['branch', `${branchName}`, fc.parents[1] ]);
 		this.pushSubIssue(branchName);
 	}
-	this.Revert = function (target) {
+	this.Revert = async function (target) {
+		if (target.revision) {
+			const choice = await vscode.window.showWarningMessage(
+				`issue \'${target.title}\' had be released already. Revert it?`,
+				'yes', 'no');
+			if (choice == 'no') {
+				return;
+			}
+		}
 		this.git.Do(['revert', target.hash]);
 		vscode.commands.executeCommand('dits.refresh');
 	}
