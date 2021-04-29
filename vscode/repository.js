@@ -579,7 +579,7 @@ class DitsRepository{
 				'The super issue has not specified. Try manually.');
 		}
 	}
-	Delete() {
+	async Delete() {
 		if (this.issue.GetProgress().open) {
 			vscode.window.showErrorMessage(
 				'There are subIssues. First, Delete or Finish them.');
@@ -605,7 +605,7 @@ class DitsRepository{
 			vscode.commands.executeCommand('dits.refresh');
 		}
 	}
-	DeleteSub(v) {
+	async DeleteSub(v) {
 		if (v.IsOpened()) {
 			vscode.window.showErrorMessage(
 				`Issue ${v.title} is opened already. First, Open it.`);
@@ -658,7 +658,7 @@ class DitsRepository{
 			this.git.Do(['commit', '-a', '-m', v]);
 		}, '', 'Message to commit "all"');
 	}
-	Reopen(target) {
+	async Reopen(target) {
 		if (target.revision) {
 			const choice = await vscode.window.showWarningMessage(
 				`issue \'${target.title}\' had be released already. Reopen it?`,
@@ -678,7 +678,7 @@ class DitsRepository{
 		this.git.Do(['branch', `${branchName}`, fc.parents[1]]);
 		this.#PushSubIssue(branchName);
 	}
-	Revert(target) {
+	async Revert(target) {
 		if (target.revision) {
 			const choice = await vscode.window.showWarningMessage(
 				`issue \'${target.title}\' had be released already. Revert it?`,
@@ -701,7 +701,7 @@ class DitsRepository{
 	}
 	GetIssueInfo() {
 		//owner取得
-		owner = null;
+		var owner = null;
 		if (this.issue.ownerCommit) {
 			owner = this.git.Do([
 				'log',
