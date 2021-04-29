@@ -537,12 +537,13 @@ class DitsRepository{
 
 		if (this.git.Do(command)) {
 			if (!reopen) {
-				this.git.CommitEmpty(`.dits open ${ticket.title}`);
-				this.git.CommitEmpty(
-					'.dits super ' +
-					this.issue.currentBranch + ' ' +
-					this.issue.currentTitle);
-
+				if (!ticket.closedAt) {
+					this.git.CommitEmpty(`.dits open ${ticket.title}`);
+					this.git.CommitEmpty(
+						'.dits super ' +
+						this.issue.currentBranch + ' ' +
+						this.issue.currentTitle);
+				}
 				this.#PushSubIssue(branchName);
 			}
 		}
