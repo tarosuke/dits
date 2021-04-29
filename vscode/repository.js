@@ -658,10 +658,19 @@ exports.DitsRepository = function () {
 			this.git.Do(['commit', '-a', '-m', v]);
 		}, '', 'Message to commit "all"');
 	}
-	this.Reopen = function (target) {
+	this.Reopen = async function (target) {
+		if (!target.revision) {
+			const choice = await vscode.window.showWarningMessage(
+				`issue \'${target.title}\' had be released already. Reopen it?`,
+				'yes', 'no');
+			if (choice === 'no') {
+				return;
+			}
+		}
 		const fc = this.git.FindCommit(target.closedAt);
 		if (!fc) {
 			//取得できなかった
+			vscode.window.showErrorMessage('Something went wrong. Sorry!');
 			return;
 		}
 		const branchName = `#${target.hash}`;
