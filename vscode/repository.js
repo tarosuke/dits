@@ -528,8 +528,11 @@ class DitsRepository{
 	OpenChild(ticket) { //副課題を開く
 		const branchName = `#${ticket.hash}`;
 		const reopen = this.git.GetBranchInfo().IsIn(branchName);
+		const fc = this.git.FindCommit(ticket.closedAt);
 		const command = !reopen ?
-			['checkout', '-b', branchName] :
+			ticket.closedAt ?
+				['checkout', '-b', branchName, fc.supers[1]] :
+				['checkout', '-b', branchName] :
 			['checkout', branchName];
 
 		if (this.git.Do(command)) {
