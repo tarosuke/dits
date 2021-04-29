@@ -528,18 +528,22 @@ class DitsRepository{
 	OpenChild(ticket) { //副課題を開く
 		const branchName = `#${ticket.hash}`;
 		const reopen = this.git.GetBranchInfo().IsIn(branchName);
+		const fc = this.git.FindCommit(ticket.closedAt);
 		const command = !reopen ?
-			['checkout', '-b', branchName] :
+			ticket.closedAt ?
+				['checkout', '-b', branchName, fc.supers[1]] :
+				['checkout', '-b', branchName] :
 			['checkout', branchName];
 
 		if (this.git.Do(command)) {
 			if (!reopen) {
-				this.git.CommitEmpty(`.dits open ${ticket.title}`);
-				this.git.CommitEmpty(
-					'.dits super ' +
-					this.issue.currentBranch + ' ' +
-					this.issue.currentTitle);
-
+				if (!ticket.closedAt) {
+					this.git.CommitEmpty(`.dits open ${ticket.title}`);
+					this.git.CommitEmpty(
+						'.dits super ' +
+						this.issue.currentBranch + ' ' +
+						this.issue.currentTitle);
+				}
 				this.#PushSubIssue(branchName);
 			}
 		}
