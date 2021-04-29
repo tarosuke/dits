@@ -675,8 +675,9 @@ class DitsRepository{
 		}
 		const branchName = `#${target.hash}`;
 		this.git.CommitEmpty(`.dits reopen ${branchName}`);
-		this.git.Do(['branch', `${branchName}`, fc.parents[1]]);
+		this.git.Do(['branch', branchName, fc.supers[1]]);
 		this.#PushSubIssue(branchName);
+		vscode.commands.executeCommand('dits.refresh');
 	}
 	async Revert(target) {
 		if (target.revision) {
