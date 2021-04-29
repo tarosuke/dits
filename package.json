@@ -60,6 +60,10 @@
 		},{
 			"command": "dits.revert",
 			"title": "Revert"
+		},{
+			"command": "dits.update",
+			"title": "Update",
+			"icon": "$(cloud-download)"
 		}],
 		"menus": {
 			"view/title": [
@@ -74,6 +78,11 @@
 				},
 				{
 					"command": "dits.delete",
+					"when": "view == issue",
+					"group": "navigation"
+				},
+				{
+					"command": "dits.update",
 					"when": "view == issue",
 					"group": "navigation"
 				},
@@ -158,6 +167,11 @@
 					"type": "boolean",
 					"default" : false,
 					"description": "Recognize short hash and branchname without # and default Merge commit, parent command"
+				},
+				"dits.updateFrom": {
+					"type": "string",
+					"default": "master",
+					"description": "Branchname to merged from when update"
 				}
 			}
 		}
