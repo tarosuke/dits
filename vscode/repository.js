@@ -82,7 +82,7 @@ class BranchInfo {
 		this.current = name;
 	}
 	IsIn(name) {
-		return this.list.find(e => IsSame(name, e));
+		return name ? this.list.find(e => IsSame(name, e)) : nell;
 	}
 };
 
@@ -197,7 +197,7 @@ class Git {
 
 	//フルコミット情報取得
 	FindCommit(hash) {
-		return this.#commits.Find(hash);
+		return hash ? this.#commits.Find(hash) : null;
 	}
 };
 
