@@ -597,7 +597,7 @@ class DitsRepository{
 				`${this.issue.currentTitle} might not an issue.`);
 			return;
 		}
-		const choice = await vscode.window.showInformationMessage(
+		const choice = await vscode.window.showWarningMessage(
 			`delete ${this.issue.currentTitle}?`, 'yes', 'no');
 		if (choice === 'yes') {
 			if (this.git.Do(['checkout', this.issue.super.branch])) {
@@ -618,7 +618,7 @@ class DitsRepository{
 				`Issue ${v.title} is opened already. First, Open it.`);
 			return;
 		}
-		const choice = await vscode.window.showInformationMessage(
+		const choice = await vscode.window.showWarningMessage(
 			`delete ${v.title}?`, 'yes', 'no');
 		if (choice === 'yes') {
 			this.git.CommitEmpty(`.dits delete #${v.hash}`);
