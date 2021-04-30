@@ -430,9 +430,9 @@ class DitsRepository{
 		}
 
 		//仮リビジョン計算
-		rev = this.issue.lastRevision;
+		var rev = this.issue.lastRevision;
 		if (rev) {
-			revs = rev.split('.');
+			var revs = rev.split('.');
 			revs[2] = parseInt(revs[2]) + 1;
 			rev = `${revs[0]}.${revs[1]}.${revs[2]}`;
 		} else {
@@ -454,7 +454,7 @@ class DitsRepository{
 				return;
 			}
 
-			commitMessage = `.dits release ${value}`;
+			const commitMessage = `.dits release ${value}`;
 			this.git.CommitEmpty(commitMessage);
 			vscode.commands.executeCommand('dits.refresh');
 
