@@ -109,9 +109,15 @@ class Git {
 				if (item[0] === '?') {
 					//未登録ファイル
 					this.#untrackeds.push(filename);
-				} else if (item[0] != ' ') {
-					//STAGED
-					this.#staged.push(filename);
+				} else {
+					if (item[0] != ' ') {
+						//STAGED
+						this.#staged.push(filename);
+					}
+					if (item[1] != ' ') {
+						//Modified
+						this.#modifieds.push(filename);
+					}
 				}
 			}
 		}
@@ -232,6 +238,10 @@ class Git {
 	//Stagedファイルリスト取得
 	GetStageds() {
 		return this.#staged;
+	}
+	//変更ファイルリスト取得
+	GetModifieds() {
+		return this.#modifieds;
 	}
 };
 
@@ -792,7 +802,8 @@ class DitsRepository{
 			owner: owner,
 			super: this.issue.super,
 			untrackeds: this.git.GetUntrackeds(),
-			stageds: this.git.GetStageds()
+			stageds: this.git.GetStageds(),
+			modifieds: this.git.GetModifieds()
 		};
 	}
 	GetClosedSub() {
