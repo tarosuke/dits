@@ -575,12 +575,22 @@ class DitsRepository{
 		}
 		vscode.commands.executeCommand('dits.refresh');
 	}
-	Finish() {
+	async Finish() {
+		//ファイルの追加忘れ防止のため未追跡ファイルがある場合確認する
+		if (this.git.GetUntrackeds().length) {
+			const choice = await vscode.window.showWarningMessage(
+				'There are untracked files. Finish this issue?', 'Yes', 'No');
+			if (choice === 'No') {
+				return;
+			}
+		}
+		//副課題がある場合、課題を終了できない
 		if (this.issue.GetProgress().open) {
 			vscode.window.showErrorMessage(
 				'There are subIssues. First, Delete or Finish them.');
 			return;
 		}
+		//親ブランチがあるのを確認してFinish
 		if (this.issue.super) {
 			if (this.git.Do(['checkout', this.issue.super.branch]) &&
 				this.git.Do([
