@@ -114,6 +114,15 @@ module.exports = {
 
 class IssueProvider {
 	#issue;
+	#MakeList(title, list) {
+		if (list && list.length) {
+			return {
+				label: `${title}(${list.length})`,
+				collapsibleState: 1,
+				list: list
+			};
+		}
+	}
 	constructor(r) {
 		this.#issue = r.GetIssueInfo();
 	}
@@ -163,37 +172,21 @@ class IssueProvider {
 				});
 			}
 			//未登録ファイル
-			if (this.#issue.untrackeds && this.#issue.untrackeds.length) {
-				t.push({
-					label: `Untrackeds(${this.#issue.untrackeds.length})`,
-					collapsibleState: 1
-				});
-			}
+			t.push(this.#MakeList('untrackeds', this.#issue.untrackeds));
 			//Stagedファイル
-			if (this.#issue.stageds && this.#issue.stageds.length) {
-				t.push({
-					label: `Stageds(${this.#issue.stageds.length})`,
-					collapsibleState: 1
-				});
-			}
+			t.push(this.#MakeList('stageds', this.#issue.stageds));
+			//Modifiedファイル
+			t.push(this.#MakeList('modifieds', this.#issue.modifieds));
 			return t;
 		} else {
-			switch (v.label[0]) {
-				case 'U':
-					this.#issue.untrackeds.forEach(e => {
-						t.push({
-							label: e
-						});
+			if (v.list) {
+				v.list.forEach(e => {
+					t.push({
+						label: e
 					});
-					break;
-				case 'S':
-					this.#issue.stageds.forEach(e => {
-						t.push({
-							label: e
-						});
-					});
-					break;
+				});
 			}
+
 			return t;
 		}
 	}
