@@ -93,22 +93,26 @@ class Git {
 	#commits = new Commits;
 	#branchInfo = new BranchInfo;
 	#modifieds = [];
+	#staged = [];
 	#untrackeds = [];
 
 	//ステータス読み込み
 	#LoadStatus() {
-		const raw = this.Do(['status', '--short']).trim();
+		const raw = this.Do(['status', '--short']);
 		if (!raw) {
 			return; //failed
 		}
 
 		for (const item of raw.split('\n')) {
-			switch (item[0]) {
-				case '?': //untracked
-					this.#untrackeds.push(item.slice(3));
-					break;
-				default:
-					break;
+			const filename = item.slice(3);
+			if (filename.length) {
+				if (item[0] === '?') {
+					//未登録ファイル
+					this.#untrackeds.push(filename);
+				} else if (item[0] != ' ') {
+					//STAGED
+					this.#staged.push(filename);
+				}
 			}
 		}
 	}
@@ -224,6 +228,10 @@ class Git {
 	//未登録ファイルリスト取得
 	GetUntrackeds() {
 		return this.#untrackeds;
+	}
+	//Stagedファイルリスト取得
+	GetStageds() {
+		return this.#staged;
 	}
 };
 
@@ -783,7 +791,8 @@ class DitsRepository{
 			progress: this.issue.GetProgress(),
 			owner: owner,
 			super: this.issue.super,
-			untrackeds: this.git.GetUntrackeds()
+			untrackeds: this.git.GetUntrackeds(),
+			stageds: this.git.GetStageds()
 		};
 	}
 	GetClosedSub() {

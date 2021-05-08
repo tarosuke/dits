@@ -165,17 +165,35 @@ class IssueProvider {
 			//未登録ファイル
 			if (this.#issue.untrackeds && this.#issue.untrackeds.length) {
 				t.push({
-					label: `untrackeds(${this.#issue.untrackeds.length})`,
+					label: `Untrackeds(${this.#issue.untrackeds.length})`,
+					collapsibleState: 1
+				});
+			}
+			//Stagedファイル
+			if (this.#issue.stageds && this.#issue.stageds.length) {
+				t.push({
+					label: `Stageds(${this.#issue.stageds.length})`,
 					collapsibleState: 1
 				});
 			}
 			return t;
 		} else {
-			this.#issue.untrackeds.forEach(e => {
-				t.push({
-					label: e
-				});
-			});
+			switch (v.label[0]) {
+				case 'U':
+					this.#issue.untrackeds.forEach(e => {
+						t.push({
+							label: e
+						});
+					});
+					break;
+				case 'S':
+					this.#issue.stageds.forEach(e => {
+						t.push({
+							label: e
+						});
+					});
+					break;
+			}
 			return t;
 		}
 	}
