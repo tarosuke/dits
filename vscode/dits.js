@@ -161,6 +161,12 @@ class IssueProvider {
 				iconPath: new vscode.ThemeIcon('fold-up')
 			});
 		}
+		//未登録ファイル
+		if (issue.untrackeds && issue.untrackeds.length) {
+			t.push({
+				label: `untrackeds(${issue.untrackeds.length})`
+			});
+		}
 		return t;
 	}
 }

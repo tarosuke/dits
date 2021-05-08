@@ -92,6 +92,26 @@ class Git {
 	#isRemote;
 	#commits = new Commits;
 	#branchInfo = new BranchInfo;
+	#modifieds = [];
+	#untrackeds = [];
+
+	//ステータス読み込み
+	#LoadStatus() {
+		const raw = this.Do(['status', '--short']).trim();
+		if (!raw) {
+			return; //failed
+		}
+
+		for (const item of raw.split('\n')) {
+			switch (item[0]) {
+				case '?': //untracked
+					this.#untrackeds.push(item.slice(3));
+					break;
+				default:
+					break;
+			}
+		}
+	}
 
 	//ブランチ情報取得
 	#LoadBranchInfo() {
@@ -157,6 +177,7 @@ class Git {
 
 		this.#LoadLog();
 		this.#LoadBranchInfo();
+		this.#LoadStatus();
 	}
 
 	//Git呼び出し
@@ -198,6 +219,11 @@ class Git {
 	//フルコミット情報取得
 	FindCommit(hash) {
 		return hash ? this.#commits.Find(hash) : null;
+	}
+
+	//未登録ファイルリスト取得
+	GetUntrackeds() {
+		return this.#untrackeds;
 	}
 };
 
@@ -746,7 +772,8 @@ class DitsRepository{
 			title: this.issue.currentTitle,
 			progress: this.issue.GetProgress(),
 			owner: owner,
-			super: this.issue.super
+			super: this.issue.super,
+			untrackeds: this.git.GetUntrackeds()
 		};
 	}
 	GetClosedSub() {
