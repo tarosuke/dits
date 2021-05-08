@@ -113,61 +113,71 @@ module.exports = {
 
 
 class IssueProvider {
+	#issue;
 	constructor(r) {
-		this.repos = r;
+		this.#issue = r.GetIssueInfo();
 	}
 	getTreeItem(v) {
 		return v;
 	}
 	getChildren(v) {
-		const issue = this.repos.GetIssueInfo();
-		if (!issue) {
-			return;
-		}
 		var t = [];
-		//表題
-		t.push({
-			label: issue.title,
-			iconPath: new vscode.ThemeIcon('issue-opened')
-		});
-		//進捗
-		const total = issue.progress.open + issue.progress.closed;
-		if (total) {
-			const p = total ? 100 * issue.progress.closed / total : 0;
-			const proglessLine =
-				`    ${p.toFixed(1)}% (`.slice(-8) +
-				`    ${issue.progress.closed} /`.slice(-7) +
-				`    ${total} )`.slice(-7);
+		if (!v) {
+			if (!this.#issue) {
+				return;
+			}
+			//表題
 			t.push({
-				label: {
-					label: proglessLine,
-					highlights: [[0, p * proglessLine.length / 100]]
-				}
+				label: this.#issue.title,
+				iconPath: new vscode.ThemeIcon('issue-opened')
 			});
-		}
-		//所有者
-		if (issue.owner) {
-			t.push({
-				label: `${issue.owner}`,
-				iconPath: new vscode.ThemeIcon('account')
+			//進捗
+			const total = this.#issue.progress.open + this.#issue.progress.closed;
+			if (total) {
+				const p = total ? 100 * this.#issue.progress.closed / total : 0;
+				const proglessLine =
+					`    ${p.toFixed(1)}% (`.slice(-8) +
+					`    ${this.#issue.progress.closed} /`.slice(-7) +
+					`    ${total} )`.slice(-7);
+				t.push({
+					label: {
+						label: proglessLine,
+						highlights: [[0, p * proglessLine.length / 100]]
+					}
+				});
+			}
+			//所有者
+			if (this.#issue.owner) {
+				t.push({
+					label: `${this.#issue.owner}`,
+					iconPath: new vscode.ThemeIcon('account')
+				});
+			}
+			//超課題
+			if (this.#issue.super) {
+				t.push({
+					label: `${this.#issue.super.label}`,
+					command: { command: 'dits.goParent' },
+					arguments: [this.#issue.super],
+					iconPath: new vscode.ThemeIcon('fold-up')
+				});
+			}
+			//未登録ファイル
+			if (this.#issue.untrackeds && this.#issue.untrackeds.length) {
+				t.push({
+					label: `untrackeds(${this.#issue.untrackeds.length})`,
+					collapsibleState: 1
+				});
+			}
+			return t;
+		} else {
+			this.#issue.untrackeds.forEach(e => {
+				t.push({
+					label: e
+				});
 			});
+			return t;
 		}
-		//超課題
-		if (issue.super) {
-			t.push({
-				label: `${issue.super.label}`,
-				command: { command: 'dits.goParent' },
-				arguments: [ issue.super ],
-				iconPath: new vscode.ThemeIcon('fold-up')
-			});
-		}
-		//未登録ファイル
-		if (issue.untrackeds && issue.untrackeds.length) {
-			t.push({
-				label: `untrackeds(${issue.untrackeds.length})`
-			});
-		}
-		return t;
 	}
 }
 
