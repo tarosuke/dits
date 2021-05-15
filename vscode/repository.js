@@ -3,6 +3,7 @@
 const vscode = require('vscode');
 const child_process = require('child_process');
 const fs = require("fs");
+const { prependOnceListener } = require('process');
 
 
 //後方互換性設定
@@ -469,6 +470,26 @@ class DitsRepository{
 		this.issue = new Issue(this.git.GetLog(), this.git.GetBranchInfo());
 	}
 	Release() { //リリース
+		function PreNPost(property, path, rev) {
+			var c =
+				vscode.workspace.getConfiguration('dits').get(property).replace(/%V/, rev).split(' ');
+			if (c.length) {
+				var out = child_process.spawnSync(c[0], c.slice(1), { cwd: path });
+				if (out.status) {
+					var m = out.stderr.toString();
+					if (!m.length) {
+						m = out.stdout.toString();
+					} else if (!m.length) {
+						m = 'UNKNOWN ERRER';
+					}
+					vscode.window.showErrorMessage(m);
+					return out.status;
+				}
+				vscode.window.showInformationMessage(out.stdout.toString());
+			}
+			return 0;
+		}
+
 		if (!this.currentPath) {
 			return;
 		}
@@ -498,10 +519,18 @@ class DitsRepository{
 				return;
 			}
 
+			//preRelease実行
+			if (!!PreNPost('preRelease', this.currentPath, rev)) {
+				//preRelease処理失敗
+				return;
+			}
+
+			//リリースコミット生成
 			const commitMessage = `.dits release ${value}`;
 			this.git.CommitEmpty(commitMessage);
 			vscode.commands.executeCommand('dits.refresh');
 
+			//リリースノート生成
 			var note = '# Release note\n\n';
 			var r = null;
 			this.issue.GetClosedList().forEach(e => {
@@ -517,6 +546,9 @@ class DitsRepository{
 
 			this.git.Do(['tag', value]);
 			this.git.DoR(['push', '--tags']);
+
+			//postRelease実行
+			PreNPost('postRelease', this.currentPath, rev);
 		});
 	}
 	NewChild() { //副課題追加

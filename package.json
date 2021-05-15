@@ -33,7 +33,7 @@
 			"title": "Open subissue"
 		},{
 			"command": "dits.release",
-			"title": "Prepare release"
+			"title": "Release"
 		},{
 			"command": "dits.finish",
 			"title": "Finish this issue",
@@ -172,6 +172,16 @@
 					"type": "string",
 					"default": "master",
 					"description": "Branchname to merged from when update"
+				},
+				"dits.preRelease": {
+					"type": "string",
+					"default": "",
+					"description": "something to run before release operation (%V will be replaced by version string)"
+				},
+				"dits.postRelease": {
+					"type": "string",
+					"default": "",
+					"description": "something to run after release operation (%V will be replaced by version string)"
 				}
 			}
 		}
