@@ -176,12 +176,12 @@
 				"dits.preRelease": {
 					"type": "string",
 					"default": "",
-					"description": "something to run before release operation"
+					"description": "something to run before release operation (%V will be replaced by version string)"
 				},
 				"dits.postRelease": {
 					"type": "string",
 					"default": "",
-					"description": "something to run after release operation"
+					"description": "something to run after release operation (%V will be replaced by version string)"
 				}
 			}
 		}
