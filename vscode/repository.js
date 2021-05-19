@@ -184,7 +184,7 @@ class Git {
 		this.#path = workingPath;
 
 		//リモートの有無を確認
-		this.#isRemote = 0 < this.Do(['remote']).split('\n').length;
+		this.#isRemote = 3 < this.Do(['remote']).length;
 
 		this.#LoadLog();
 		this.#LoadBranchInfo();
@@ -210,6 +210,7 @@ class Git {
 		if (this.#isRemote) {
 			return this.Do(args, supressError);
 		}
+		return "remote operation has be skipped(no remote).";
 	}
 
 	//メッセージだけの空コミット
