@@ -806,6 +806,8 @@ class DitsRepository{
 				'--no-ff',
 				'-m', `update from ${updateFrom}`,
 				updateFrom]);
+
+			vscode.commands.executeCommand('dits.refresh');
 		});
 	}
 
