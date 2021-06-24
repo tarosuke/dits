@@ -474,7 +474,7 @@ class DitsRepository{
 		function PreNPost(property, path, rev) {
 			var c =
 				vscode.workspace.getConfiguration('dits').get(property).replace(/%V/, rev).split(' ');
-			if (c.length) {
+			if (c.length && c[0].length) {
 				var out = child_process.spawnSync(c[0], c.slice(1), { cwd: path });
 				if (out.status) {
 					var m = out.stderr.toString();
