@@ -17,61 +17,81 @@
 	],
 	"main": "vscode/dits.js",
 	"contributes": {
-		"commands": [{
-			"command": "dits.refresh",
-			"title": "Refresh",
-			"icon": "$(refresh)"
-		},{
-			"command": "dits.chdir",
-			"title": "Change current directory"
-		},{
-			"command": "dits.newChild",
-			"title": "New subissue",
-			"icon": "$(add)"
-		},{
-			"command": "dits.openChild",
-			"title": "Open subissue"
-		},{
-			"command": "dits.release",
-			"title": "Release"
-		},{
-			"command": "dits.finish",
-			"title": "Finish this issue",
-			"icon": "$(check)"
-		},{
-			"command": "dits.delete",
-			"title": "Delete this issue",
-			"icon": "$(remove)"
-		},{
-			"command": "dits.deleteSub",
-			"title": "Delete the issue"
-		},{
-			"command": "dits.goParent",
-			"title": "Checkout super issue"
-		},{
-			"command": "dits.commit",
-			"title": "Commit"
-		},{
-			"command": "dits.commitAll",
-			"title": "Commit modified"
-		},{
-			"command": "dits.reopen",
-			"title": "Reopen"
-		},{
-			"command": "dits.revert",
-			"title": "Revert"
-		},{
-			"command": "dits.update",
-			"title": "Update",
-			"icon": "$(cloud-download)"
-		}],
+		"commands": [
+			{
+				"command": "dits.refresh",
+				"title": "Refresh",
+				"icon": "$(refresh)"
+			},
+			{
+				"command": "dits.chdir",
+				"title": "Change current directory"
+			},
+			{
+				"command": "dits.newChild",
+				"title": "New subissue",
+				"icon": "$(add)"
+			},
+			{
+				"command": "dits.openChild",
+				"title": "Open subissue"
+			},
+			{
+				"command": "dits.release",
+				"title": "Release"
+			},
+			{
+				"command": "dits.finish",
+				"title": "Finish this issue",
+				"icon": "$(check)"
+			},
+			{
+				"command": "dits.delete",
+				"title": "Delete this issue",
+				"icon": "$(remove)"
+			},
+			{
+				"command": "dits.deleteSub",
+				"title": "Delete the issue"
+			},
+			{
+				"command": "dits.goParent",
+				"title": "Checkout super issue"
+			},
+			{
+				"command": "dits.commit",
+				"title": "Commit"
+			},
+			{
+				"command": "dits.commitAll",
+				"title": "Commit modified"
+			},
+			{
+				"command": "dits.reopen",
+				"title": "Reopen"
+			},
+			{
+				"command": "dits.revert",
+				"title": "Revert"
+			},
+			{
+				"command": "dits.retitle",
+				"title": "retitle"
+			},
+			{
+				"command": "dits.update",
+				"title": "Update",
+				"icon": "$(cloud-download)"
+			}
+		],
 		"menus": {
 			"view/title": [
 				{
 					"command": "dits.refresh",
 					"when": "view == issue",
 					"group": "navigation"
-				},{
+				},
+				{
 					"command": "dits.finish",
 					"when": "view == issue",
 					"group": "navigation"
@@ -105,17 +125,25 @@
 				}
 			],
 			"view/item/context": [
-			{
-				"command": "dits.deleteSub",
-				"when": "view == children",
-				"group": "navigation"
-			},{
-				"command": "dits.reopen",
-				"when": "view == closedChildren"
-			},{
-				"command": "dits.revert",
-				"when": "view == closedChildren"
-			}]
+				{
+					"command": "dits.retitle",
+					"when": "view == issue",
+					"group": "navigation"
+				},
+				{
+					"command": "dits.deleteSub",
+					"when": "view == children",
+					"group": "navigation"
+				},
+				{
+					"command": "dits.reopen",
+					"when": "view == closedChildren"
+				},
+				{
+					"command": "dits.revert",
+					"when": "view == closedChildren"
+				}
+			]
 		},
 		"viewsContainers": {
 			"activitybar": [
@@ -163,9 +191,9 @@
 		"configuration": {
 			"title": "dits",
 			"properties": {
-				"dits.backwordCompatible":{
+				"dits.backwordCompatible": {
 					"type": "boolean",
-					"default" : false,
+					"default": false,
 					"description": "Recognize short hash and branchname without # and default Merge commit, parent command"
 				},
 				"dits.updateFrom": {

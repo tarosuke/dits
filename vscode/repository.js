@@ -22,7 +22,7 @@ function IsSame(aa, bb) {
 
 
 //コミット
-class Commit{
+class Commit {
 	hash;
 	supers;
 	owner;
@@ -337,7 +337,7 @@ class Issue {
 	GetLivingList() {
 		var t = [];
 		this.#sub.forEach(e => {
-			if (e.IsNew() || e.IsOpened()){
+			if (e.IsNew() || e.IsOpened()) {
 				//追加
 				t.push(e);
 			}
@@ -429,7 +429,7 @@ class Issue {
 							break;
 						case 'reopen': //課題再開
 							this.#OpenSub(cargs[2]);
-						 	break;
+							break;
 						default:
 							vscode.window.showErrorMessage(
 								`Unrecognized dits command: ${c.message}`);
@@ -461,7 +461,7 @@ class Issue {
 
 
 
-class DitsRepository{
+class DitsRepository {
 	/////インターフェイス
 	LoadBranch() { //ブランチの読み込み
 		if (!this.currentPath) {
@@ -810,7 +810,11 @@ class DitsRepository{
 			vscode.commands.executeCommand('dits.refresh');
 		});
 	}
-
+	ReTitle() {
+		this.#InputAndDo(v => {
+			this.git.CommitEmpty(".dits title " + v);
+		}, '', 'New Issue Title');
+	}
 
 	/////アクセサ
 	GetSub() {
