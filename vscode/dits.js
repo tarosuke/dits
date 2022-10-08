@@ -99,6 +99,10 @@ function activate(context) {
 		vscode.commands.registerCommand('dits.update', () => {
 			this.repository.Update();
 		}));
+	context.subscriptions.push(
+		vscode.commands.registerCommand('dits.retitle', () => {
+			this.repository.ReTitle();
+		}));
 }
 
 // this method is called when your extension is deactivated
@@ -219,7 +223,7 @@ class ChildrenTreeviewProvider {
 			hash: c.hash,
 			command: {
 				command: 'dits.openChild',
-				arguments: [ c ]
+				arguments: [c]
 			}
 		};
 	}
