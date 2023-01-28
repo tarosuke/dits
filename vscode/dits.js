@@ -103,6 +103,12 @@ function activate(context) {
 		vscode.commands.registerCommand('dits.retitle', () => {
 			this.repository.ReTitle();
 		}));
+
+	// ファイル監視の登録
+	let watcher = vscode.workspace.createFileSystemWatcher("**");
+	watcher.onDidChange(function (uri) {
+		vscode.commands.executeCommand('dits.refresh');
+	});
 }
 
 // this method is called when your extension is deactivated
