@@ -147,6 +147,7 @@ class IssueProvider {
 			}
 			//表題
 			t.push({
+				contextValue: 'issueTitle',
 				label: this.#issue.title,
 				iconPath: new vscode.ThemeIcon('issue-opened')
 			});

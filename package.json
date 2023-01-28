@@ -127,7 +127,7 @@
 			"view/item/context": [
 				{
 					"command": "dits.retitle",
-					"when": "view == issue",
+					"when": "viewItem == issueTitle",
 					"group": "navigation"
 				},
 				{
@@ -185,7 +185,7 @@
 		"viewsWelcome": [
 			{
 				"view": "workspaces",
-				"contents": "No Git workdirectory.\nOpen folder or workspace."
+				"contents": "No Git workdirectory found (yet)."
 			}
 		],
 		"configuration": {
