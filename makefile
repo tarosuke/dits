@@ -61,9 +61,16 @@ uninstall:
 clean:
 	rm -fr $(target) *.map build/* *.mp4 /tmp/$(target)cast* *.orig */*.orig html
 	make -C toolbox clean
+	rm dits*
 
 doxygen:
 	doxygen Doxyfile
+
+vscpackage:
+	npx vsce package
+
+vscinstall:
+	code --install-extension dits*.vsix
 
 
 ################################################################# COMMON RULES
