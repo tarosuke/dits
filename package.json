@@ -2,7 +2,7 @@
 	"name": "dits",
 	"displayName": "DITS",
 	"description": "distoributed issue tracking system for VSCode",
-	"version": "0.0.8",
+	"version": "0.0.9",
 	"publisher": "tarosuke",
 	"license": "GPL3",
 	"repository": {
