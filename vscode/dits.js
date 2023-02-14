@@ -106,8 +106,15 @@ function activate(context) {
 
 	// ファイル監視の登録
 	let watcher = vscode.workspace.createFileSystemWatcher("**");
+	watcher.watcherTimer = null;
 	watcher.onDidChange(function (uri) {
-		vscode.commands.executeCommand('dits.refresh');
+		if (this.watcherTimer != null) {
+			clearTimeout(this.watcherTimer);
+		}
+		this.watcherTimer = setTimeout(function () {
+			vscode.commands.executeCommand('dits.refresh');
+			this.watcherTimer = null;
+		}, 500);
 	});
 }
 
